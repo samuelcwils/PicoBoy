@@ -1,3 +1,0 @@
-[submodule "external/st7789"]
-	path = external/st7789
-	url = https://github.com/ArmDeveloperEcosystem/st7789-library-for-pico
