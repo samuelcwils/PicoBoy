@@ -10,8 +10,18 @@ project(PicoGameboy)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/lfs)
+
 add_executable(${PROJECT_NAME}
 	src/main.cpp
+	src/bus.cpp
+	src/cart.cpp
+	src/cpu.cpp
+)
+
+include_directories(${PROJECT_NAME}
+	${CMAKE_CURRENT_SOURCE_DIR}/include
+	${CMAKE_CURRENT_SOURCE_DIR}/external/incbin
 )
 
 target_link_libraries(${PROJECT_NAME} 
@@ -22,3 +32,5 @@ target_link_libraries(${PROJECT_NAME}
 
 pico_enable_stdio_usb(${PROJECT_NAME} 1)
 pico_enable_stdio_uart(${PROJECT_NAME} 0)
+
+pico_add_extra_outputs(PicoGameboy)
