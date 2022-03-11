@@ -35,3 +35,4 @@ build/
 roms/
 external/lfs
 *.json
+*.gb

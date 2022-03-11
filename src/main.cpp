@@ -61,51 +61,21 @@ int main()
             printf("ERROR");
         }
     }
-    
-    uint64_t totalCPULength = 0;
-    uint64_t totalTimerLength = 0;
 
     while(true)
     {
-        uint64_t start = time_us_64();
         while(!PPU->frameDone)
         {             
             if(!(PPU->regs.bytes.LCDC & 0b10000000)) //doesn't tick ppu while not enabled
             {
-               uint64_t start = time_us_64();
                 CPU->execOP();
-                uint64_t stop = time_us_64();
-                uint64_t length = stop - start;
-               totalCPULength+=length;
-
-                start = time_us_64();
-                
                 CPU->updateTimers(); 
-
-                stop = time_us_64();
-                length = stop - start;
-                totalTimerLength +=length;
-
                 CPU->cycles = 0;
 
             } else 
             {               
-                uint64_t start = time_us_64();
                 CPU->execOP();
-                uint64_t stop = time_us_64();
-                uint64_t length = stop - start;
-                totalCPULength+=length;
-
-
-               start = time_us_64();
-
                 CPU->updateTimers();
-
-                stop = time_us_64();
-               length = stop - start;
-               totalTimerLength +=length;
-
-
                 PPU->tick();
         
                 CPU->cycles = 0;
@@ -115,22 +85,8 @@ int main()
         }    
 
         frameDone = true;
-        
-        uint64_t stop = time_us_64();
-        
-        uint64_t length = (stop - start);
-
-        totalCPULength = 0;
-        totalTimerLength = 0;
-
-        start = time_us_64();
 
         Pico->update();
-
-        stop = time_us_64();
-        length = (stop - start);
-
-        printf("Screen: %llu\n", length);
 
         PPU->frameDone = false;
             
