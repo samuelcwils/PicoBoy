@@ -14,8 +14,9 @@
             "device": "Pico2040",
             "runToMain": true,
             "configFiles": ["interface/picoprobe.cfg", "target/rp2040.cfg"],
-            "searchDir": ["C:/Users/Sam/Desktop/picoDEbug/OpenOCD-20211118-0.11.0/tcl"],
+            "searchDir": ["C:/Users/Sam/Desktop/openocd/tcl"],
             "svdFile": "C:/Users/Sam/pico-sdk/src/rp2040/hardware_regs/rp2040.svd",
         }
     ]
+
 }

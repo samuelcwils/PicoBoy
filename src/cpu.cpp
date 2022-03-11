@@ -1,208 +1,174 @@
 #include "cpu.h"
     
     cpu::cpu(bus* Bus)
-    {
+    {           
+        fp = fopen ("file.txt", "w+");
         this->Bus = Bus;
         cycles = 0;
         af.af = 0;
         bc.bc = 0;
         de.de = 0;
-        sp = 0;
-        pc = 0x0150;
+        sp.sp = 0;
+        pc.pc = 0;
+        IF = 0;
+        IE = 0;
+        IME = false;
+        bootRomDone = false;
+        DIV = 0;
+        TIMA = 0;
+        TMA = 0;
+        TAC = 0;
+        TIMA_speed = 0;
+        totalTicks_DIV = 0;
+        totalTicks_TIMA = 0;
+        IME = 0;
+        IMEdelay = false;
+        servicingInterrupt = false;
+        cycles = 0;
     }
 
-    void cpu::Zflag(uint16_t a, uint16_t b)
+    void cpu::checkInterrupts()
     {
-        if(!(a+b)){ //Z flag
-            af.bytes.f |= 0b10000000;
-        } else {
-            af.bytes.f &= 0b01111111;
-        }     
-    }
-
-    void cpu::Hflag(uint8_t a, uint8_t b)
-    {
-        if(((a & 0xf) + (b & 0xf)) & 0x10){ //H flag
-            af.bytes.f |= 0b01000000;
-        } else {
-            af.bytes.f &= 0b11011111;
-        }
-    }
-    
-    void cpu::Hflag(uint16_t a, uint16_t b)
-    {
-        if((((a >> 8) & 0xf) + ((b >> 8) & 0xf)) & 0x10){ //H flag
-            af.bytes.f |= 0b01000000;
-        } else {
-            af.bytes.f &= 0b11011111;
-        }
-    }
-
-    void cpu::Cflag(uint8_t a, uint8_t b)
-    {
-        int temp = (a + b) >> 8;
-        if(temp){
-            af.bytes.f |= 0b00010000;
-        } else{
-            af.bytes.f &= 0b11101111;
-        }
-
-    }
-
-    void cpu::Cflag(uint16_t a, uint16_t b)
-    {
-        int temp = (a + b) >> 16;
-        if(temp){
-            af.bytes.f |= 0b00010000;
-        } else{
-            af.bytes.f &= 0b11101111;
-        }
-
-    }
-    
-    void cpu::execOP()
-    {
-        uint8_t opcode = Bus->read(pc);
-        uint8_t opcodeH = (opcode & 0xF0) >> 4;
-        uint8_t opcodeL = opcode & 0x0F;
-
-        switch (opcodeH)
+        if(!IMEdelay)
         {
-        case 0x0:
-            switch(opcodeL)
+            if(IME)
             {
-                case 0x0: //NOP
-                    pc+=1;
-                    cycles+=4;
-                    break;
-                
-                case 0x1: //LD BC,d16
-                    bc.bytes.b = Bus->read(pc+1);
-                    bc.bytes.c = Bus->read(pc+2);
-                    pc+=3;
-                    cycles+=12;
-                    break;
-                
-                case 0x2: //LD BC,A
-                    bc.bc = af.bytes.a;
-                    pc+=1;
-                    break;
+                if(IE & (0b00000001)) //VBLANK
+                {
+                    if(IF & (0b00000001))
+                    {
+                        servicingInterrupt = true;
+                        IF &= 0b11111110;
+                        IME = false;
+                        
+                        sp.sp--;
+                        Bus->write(sp.sp, pc.bytes.p);
+                        sp.sp--;
+                        Bus->write(sp.sp, pc.bytes.c);
 
-                case 0x3: //INC BC
-                    bc.bc+=1;
-                    pc+=1;
-                    cycles+=8;
-                    break;
-
-                case 0x4: //INC B (Z 0 H -) 
-                    Zflag(bc.bytes.b, 1);
-
-                    af.bytes.f &= 0b01000000; //N flag
-
-                    Hflag(bc.bytes.b, 1);
-
-                    bc.bytes.b+=1;
-                    pc+=1;
-                    cycles+=4;
-                    break;
-
-                case 0x5: //DEC B (Z 1 H -)
-                    Zflag(bc.bytes.b, -1);
-
-                    af.bytes.f &= 0b01000000; //N flag
-
-                    Hflag(bc.bytes.b, -1);
-
-                    bc.bytes.b-=1;
-                    pc+=1;
-                    cycles+=4;
-                    break;
-
-                case 0x6: //LD B,d8
-                    bc.bytes.b = Bus->read(pc+1);
-                    pc+=2;
-                    cycles+=8;
-                    break;
-
-                case 0x7: //RLCA (0 0 0 A7)
-                    bool carry = (((af.bytes.a << 1) & 0xff00));
-                    af.bytes.a <<= 1;
-                    af.bytes.a += carry;
-                    
-                    if(carry){
-                        af.bytes.f |= 0b00010000;
-                    } else {
-                        af.bytes.f &= 0b11101111;
+                        pc.pc = 0x40;
+                        cycles += 20;
+                        return;
                     }
-                    
-                    pc+=1;
-                    cycles+=4;
-                    break;
+                
+                }
+                
+                if(IE & (0b00000010)) //LCD STAT
+                {
+                    if(IF & (0b00000010))
+                    {
+                        servicingInterrupt = true;
+                        IF &= 0b11111101;
+                        IME = false;
+                        
+                        sp.sp--;
+                        Bus->write(sp.sp, pc.bytes.p);
+                        sp.sp--;
+                        Bus->write(sp.sp, pc.bytes.c);
 
-                case 0x8: //LD a16, SP
-                    Bus->write(pc+1, sp & 0x00ff);
-                    Bus->write(pc+2, (sp & 0xff00) >> 8);
-                    pc+=3;
-                    cycles+=20;
-                    break;
+                        pc.pc = 0x48;
+                        cycles += 20;
+                        return;
+                    }
 
-                case 0x9: //ADD HL, BC (- 0 H C)
-                    Hflag(hl.hl, bc.bc);
-                    
-                    af.bytes.f &= 0b00000000; //N flag
-                    
-                    Cflag(hl.hl, bc.bc);
-                    hl.hl += bc.bc;
-                    pc+=1;
-                    cycles+=8;
-                    break;
+                }
+                
+                if(IE & (0b00000100)) //TIMER
+                {
+                    if(IF & (0b00000100))
+                    {
+                        servicingInterrupt = true;
+                        IF &= 0b11111011;
+                        IME = false;
+                        
+                        sp.sp--;
+                        Bus->write(sp.sp, pc.bytes.p);
+                        sp.sp--;
+                        Bus->write(sp.sp, pc.bytes.c);
 
-                case 0xa: //LD A, BC
-                    af.bytes.a = Bus->read(bc.bc);
-                    pc+=1;
-                    cycles+=8;
-                    break;
+                        pc.pc = 0x50;
+                        cycles += 20;
+                        return;
+                    }
+                }
+                
+                if(IE & (0b00001000)) //SERIAl
+                {
+                    if(IF & (0b00001000))
+                    {
+                        servicingInterrupt = true;
+                        IF &= 0b11101111;
+                        IME = false;
+                        sp.sp--;
+                        Bus->write(sp.sp, pc.bytes.p);
+                        sp.sp--;
+                        Bus->write(sp.sp, pc.bytes.c);
 
-                case 0xb: //DEC BC
-                    bc.bc-=1;
-                    pc+=1;
-                    cycles+=4;
-                    break;
+                        pc.pc = 0x58;
+                        cycles += 20;
+                        return;
+                    }
+                }
+                
+                if(IE & (0b00010000)) //JOYPAD
+                {
+                    if(IF & (0b00010000))
+                    {
+                        servicingInterrupt = true;
+                        IF &= 0b11101111;
+                        IME = false;
+                        
+                        sp.sp--;
+                        Bus->write(sp.sp, pc.bytes.p);
+                        sp.sp--;
+                        Bus->write(sp.sp, pc.bytes.c);
 
-                case 0xc: //INC C
-                    bc.bytes.c+=1;
-                    pc+=1;
-                    cycles+=4;
-                    
-
-
-
-
-
-            
-
-
-
-
-                    
-
-
-
-
+                        pc.pc = 0x60;
+                        cycles += 20;
+                        return;
+                    }
+                }
 
             }
+            
+        }
         
-        default:
-            printf("INVALID OPCODE\n");
-            pc++;
-            break;
+        IMEdelay = false;
+    }
+
+void cpu::updateTimers()
+{
+    int ticks = cycles;
+    while(ticks > 0)
+    {
+        totalTicks_DIV += ticks;
+        DIV = ((uint8_t)((totalTicks_DIV & 0xff00) >> 8));
+        
+        if(TAC & 0b00000100)
+        {    
+            int newTicks = 0;  
+            totalTicks_TIMA += ticks;
+            if(totalTicks_TIMA / TIMA_speed)
+            {
+                newTicks = totalTicks_TIMA / TIMA_speed;
+                totalTicks_TIMA -= TIMA_speed;
+            }
+
+            int temp = ((uint16_t)((TIMA + newTicks))) & 0xff00;
+
+            if(temp){
+                IF |= 0b00000100;
+                TIMA = TMA;
+                return;
+            }
+
+            TIMA += newTicks;
         }
 
-
+        ticks--;
     }
-   
-    void cpu::emulateCycles()
-    {
-        
 
-    }
+
+
+}
+

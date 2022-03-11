@@ -1,6 +1,7 @@
-[submodule "external/pimoroni-pico"]
-	path = external/pimoroni-pico
-	url = https://github.com/pimoroni/pimoroni-pico
 [submodule "external/incbin"]
 	path = external/incbin
 	url = https://github.com/graphitemaster/incbin
+
+[submodule "external/pimoroni-pico"]
+	path = external/pimoroni-pico
+	url = https://github.com/pimoroni/pimoroni-pico

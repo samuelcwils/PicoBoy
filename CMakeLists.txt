@@ -4,25 +4,27 @@ include(external/pico_sdk_import.cmake)
 include(external/pimoroni_pico_import.cmake)
 include(${PIMORONI_PICO_PATH}/libraries/pico_explorer/pico_explorer.cmake)
 
-pico_sdk_init()
-
 project(PicoGameboy)
-set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external/lfs)
+pico_sdk_init()
 
 add_executable(${PROJECT_NAME}
 	src/main.cpp
 	src/bus.cpp
 	src/cart.cpp
 	src/cpu.cpp
+	src/opcodes.cpp
+	src/ppu.cpp
+	src/sound.cpp
+	src/MBC1.cpp
 )
 
 include_directories(${PROJECT_NAME}
 	${CMAKE_CURRENT_SOURCE_DIR}/include
 	${CMAKE_CURRENT_SOURCE_DIR}/external/incbin
 )
+
 
 target_link_libraries(${PROJECT_NAME} 
 	pico_stdlib
