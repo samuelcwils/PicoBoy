@@ -15,6 +15,10 @@ ppu::ppu()
     {
         regs.regs[i] = 0;
     }
+    regs.bytes.LCDC = 0x91;
+    regs.bytes.BGP = 0xfc;
+    regs.bytes.OBP0 = 0xff;
+    regs.bytes.OBP1 = 0xff;
     totalFrames = 0; 
 }
 
@@ -254,10 +258,6 @@ void ppu::tick()
 {
     int ticks = CPU->cycles;
 
-    uint64_t start;
-    uint64_t stop;
-    uint64_t length;
-
     while(ticks > 0)
     {
         Bus->PPU_read = true;
@@ -268,9 +268,9 @@ void ppu::tick()
         {
             
             case OAM:
-            {
                 OAM_access = false;
-                if(totalTicks == 80){
+                if(totalTicks == 80)
+                {
                     if(regs.bytes.LCDC & 0b00001000)
                     {
                         fetcher.BG_mapBase = 0x9c00;
@@ -303,11 +303,9 @@ void ppu::tick()
                     regs.bytes.STAT &= 0b11111100;
                     regs.bytes.STAT |= Transfer;
                 }
-                break;
+            break;
 
-            }
             case Transfer:
-            {
                 if(!(totalFrames % 3))
                 {
                     if(totalTicks % 2)
@@ -320,7 +318,7 @@ void ppu::tick()
 
                     if((fifoSize > 8))
                     {      
-                        int amountScrolled = 0;
+                        amountScrolled = 0;
                         while(scrollingLeft > 0 && ((fifoSize - amountScrolled) > 8))
                         {
                             fifoSize--;
@@ -386,10 +384,8 @@ void ppu::tick()
                     }
                 }
 
-                break;
-            }
+            break;
             case hBlank:
-            {
 
                 VRAM_access = true;
                 OAM_access = true;
@@ -416,11 +412,9 @@ void ppu::tick()
 
                 }   
 
-                break;
-            }
-            case vBlank:
-            {
+            break;
 
+            case vBlank:
                 VRAM_access = true;
                 OAM_access = true;
                 
@@ -443,8 +437,7 @@ void ppu::tick()
                     }
                 }
 
-                break;
-            }
+            break;
         }
 
         totalTicks++; 

@@ -13,8 +13,6 @@ add_executable(${PROJECT_NAME}
 	src/main.cpp
 	src/bus.cpp
 	src/cart.cpp
-	src/cpu.cpp
-	src/opcodes.cpp
 	src/ppu.cpp
 	src/sound.cpp
 	src/MBC1.cpp
@@ -31,6 +29,7 @@ target_link_libraries(${PROJECT_NAME}
 	pico_multicore
 	pico_explorer
 )
+
 
 pico_enable_stdio_usb(${PROJECT_NAME} 1)
 pico_enable_stdio_uart(${PROJECT_NAME} 0)

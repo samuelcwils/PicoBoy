@@ -58,7 +58,7 @@
     };
 
 
-    inline void cpu::Zflag(uint8_t a, uint8_t b)
+    __attribute__((always_inline)) void cpu::Zflag(uint8_t a, uint8_t b)
     {
         uint16_t temp = ((uint16_t)(a + b));
         if(((uint8_t)temp) == 0) {
@@ -68,7 +68,7 @@
         }
     }
 
-    inline void cpu::Zflag_sub(uint16_t a, int b)
+    __attribute__((always_inline)) void cpu::Zflag_sub(uint16_t a, int b)
         {
             if(!(a+b) || ( (a+b) >= 256) ){ //Z flag
                 af.bytes.f |= 0b10000000;
@@ -77,7 +77,7 @@
             }     
         }
     
-    inline void cpu::Hflag(uint8_t a, uint8_t b)
+    __attribute__((always_inline)) void cpu::Hflag(uint8_t a, uint8_t b)
     {
         if(((a & 0x0f) + (b & 0x0f)) > 0xf){
             af.bytes.f |= 0b00100000;
@@ -86,7 +86,7 @@
         }
     }
     
-    inline void cpu::Hflag(uint16_t a, uint16_t b)
+    __attribute__((always_inline)) void cpu::Hflag(uint16_t a, uint16_t b)
     {
         if(((a & 0xfff) + ((b & 0xfff)) > 0xfff)){ 
             af.bytes.f |= 0b00100000;
@@ -95,7 +95,7 @@
         }
     }
 
-    inline void cpu::Hflag_sub(uint8_t a, uint8_t b)
+    __attribute__((always_inline)) void cpu::Hflag_sub(uint8_t a, uint8_t b)
     {
         if((((a & 0xf) - (b & 0xf)))  < 0){
             af.bytes.f |= 0b00100000;
@@ -104,7 +104,7 @@
         }
     }
 
-    inline void cpu::Cflag(uint8_t a, uint8_t b)
+    __attribute__((always_inline)) void cpu::Cflag(uint8_t a, uint8_t b)
     {
         int temp = (a + b) >> 8;
         if(temp){
@@ -114,7 +114,7 @@
         }
     }
 
-    inline void cpu::Cflag(uint16_t a, uint16_t b)
+    __attribute__((always_inline)) void cpu::Cflag(uint16_t a, uint16_t b)
     {
         int temp = (a + b) >> 16;
         if(temp){
@@ -124,7 +124,7 @@
         }
     }
 
-    inline void cpu::Cflag_sub(uint8_t a, uint8_t b)
+    __attribute__((always_inline)) void cpu::Cflag_sub(uint8_t a, uint8_t b)
     {
         int temp = (a - b) >> 8;
         if(temp){
@@ -134,7 +134,7 @@
         }
     }
 
-    inline void cpu::LD_d16(uint8_t &high, uint8_t &low)
+    __attribute__((always_inline)) void cpu::LD_d16(uint8_t &high, uint8_t &low)
     {
         low = Bus->read(pc.pc+1);
         high = Bus->read(pc.pc+2);
@@ -142,43 +142,43 @@
                
     }
 
-    inline void cpu::LD_d8(uint8_t &byte)
+    __attribute__((always_inline)) void cpu::LD_d8(uint8_t &byte)
     {
         byte = Bus->read(pc.pc+1);
         pc.pc+=2;
             }
 
-    inline void cpu::LD_REG1_REG2(uint8_t &a, uint8_t b)
+    __attribute__((always_inline)) void cpu::LD_REG1_REG2(uint8_t &a, uint8_t b)
     {
         a = b;
         pc.pc+=1;
             }
     
-    inline void cpu::LD_HL_REG(uint8_t reg)
+    __attribute__((always_inline)) void cpu::LD_HL_REG(uint8_t reg)
     {
         Bus->write(hl.hl, reg);
         pc.pc+=1;
             }
 
-    inline void cpu::LD_REG_HL(uint8_t &reg)
+    __attribute__((always_inline)) void cpu::LD_REG_HL(uint8_t &reg)
     {
         reg = Bus->read(hl.hl);
         pc.pc+=1;
             }
     
-    inline void cpu::LD_ADDRESS_A(uint16_t address)
+    __attribute__((always_inline)) void cpu::LD_ADDRESS_A(uint16_t address)
     {
         Bus->write(address, af.bytes.a);
         pc.pc+=1;
             }
 
-    inline void cpu::LD_A_ADDRESS(uint16_t address)
+    __attribute__((always_inline)) void cpu::LD_A_ADDRESS(uint16_t address)
     {
         af.bytes.a = Bus->read(address);
         pc.pc+=1;
             }
 
-    inline void cpu::JP_a16()
+    __attribute__((always_inline)) void cpu::JP_a16()
     {
         uint16_t temp = pc.pc;
         pc.bytes.c = Bus->read(temp+1);
@@ -186,14 +186,14 @@
         
     }
 
-    inline void cpu::JR()
+    __attribute__((always_inline)) void cpu::JR()
     {
         int8_t r8 = (int8_t)(Bus->read(pc.pc+1));
         pc.pc += r8 + 2;
           
     }
 
-    inline void cpu::JR_cond(bool flag)
+    __attribute__((always_inline)) void cpu::JR_cond(bool flag)
     {
         if(flag)
         {
@@ -204,7 +204,7 @@
                     }
     }
 
-    inline void cpu::JP_cond(bool flag)
+    __attribute__((always_inline)) void cpu::JP_cond(bool flag)
     {
         if(flag)
         {
@@ -216,7 +216,7 @@
         }
     }
 
-    inline void cpu::POP_16b(uint8_t &high, uint8_t &low)
+    __attribute__((always_inline)) void cpu::POP_16b(uint8_t &high, uint8_t &low)
     {
         low = Bus->read(sp.sp);
         high = Bus->read(sp.sp+=1);
@@ -225,7 +225,7 @@
         
     }
 
-    inline void cpu::PUSH_16b(uint8_t high, uint8_t low)
+    __attribute__((always_inline)) void cpu::PUSH_16b(uint8_t high, uint8_t low)
     {
         sp.sp--;
         Bus->write(sp.sp, high);
@@ -235,7 +235,7 @@
             
     }
 
-    inline void cpu::CALL()
+    __attribute__((always_inline)) void cpu::CALL()
     {
         uint16_t temp = 0;
         temp = pc.pc + 3;
@@ -252,7 +252,7 @@
         
     }
 
-    inline void cpu::CALL_cond(bool flag)
+    __attribute__((always_inline)) void cpu::CALL_cond(bool flag)
     {
         if(flag)
         {
@@ -264,7 +264,7 @@
         }
     }
 
-    inline void cpu::RST(uint8_t H)
+    __attribute__((always_inline)) void cpu::RST(uint8_t H)
     {      
         uint16_t temp = 0;
         temp = pc.pc + 1;
@@ -278,7 +278,7 @@
         
     }
 
-    inline void cpu::RET()
+    __attribute__((always_inline)) void cpu::RET()
     {
         pc.bytes.c = Bus->read(sp.sp);
         pc.bytes.p = Bus->read(sp.sp+=1);
@@ -286,7 +286,7 @@
         
     }
 
-    inline void cpu::RET_cond(bool flag)
+    __attribute__((always_inline)) void cpu::RET_cond(bool flag)
     {
         if(flag)
         {
@@ -300,7 +300,7 @@
 
     }
 
-    inline void cpu::ADD(uint16_t &a, uint16_t b)
+    __attribute__((always_inline)) void cpu::ADD(uint16_t &a, uint16_t b)
     {
   
         af.bytes.f &= 0b10111111; //N flag
@@ -310,7 +310,7 @@
         pc.pc+=1;
             }
     
-    inline void cpu::ADD(uint8_t &a, uint8_t b)
+    __attribute__((always_inline)) void cpu::ADD(uint8_t &a, uint8_t b)
     {
         Zflag(a, b);
         af.bytes.f &= 0b10111111; //N flag
@@ -320,7 +320,7 @@
         pc.pc+=1;
             }
 
-    inline void cpu::ADC(uint8_t &a, uint8_t b)
+    __attribute__((always_inline)) void cpu::ADC(uint8_t &a, uint8_t b)
     {
         uint16_t result = (uint16_t)(a + b + ((af.bytes.f & 0b00010000) >> 4));
         uint16_t halfResult = (uint16_t)((a & 0xf) + (b & 0xf) + ((af.bytes.f & 0b00010000) >> 4));
@@ -350,7 +350,7 @@
         pc.pc+=1;
             }
 
-    inline void cpu::SUB(uint8_t &a, uint8_t b)
+    __attribute__((always_inline)) void cpu::SUB(uint8_t &a, uint8_t b)
     {
         Zflag_sub(a, -b);
         af.bytes.f |= 0b01000000; //N flag
@@ -361,7 +361,7 @@
              
     }
 
-    inline void cpu::SBC(uint8_t &a, uint8_t b)
+    __attribute__((always_inline)) void cpu::SBC(uint8_t &a, uint8_t b)
     {
         uint16_t result = (uint16_t)(a - b - ((af.bytes.f & 0b00010000) >> 4));
         uint16_t halfResult = (uint16_t)((a & 0xf) - (b & 0xf) - ((af.bytes.f & 0b00010000) >> 4));
@@ -392,7 +392,7 @@
            
     }
 
-    inline void cpu::AND(uint8_t &a, uint8_t b)
+    __attribute__((always_inline)) void cpu::AND(uint8_t &a, uint8_t b)
     {
         a&=b;
         
@@ -409,7 +409,7 @@
         pc.pc+=1;
             }
 
-    inline void cpu::XOR(uint8_t &a, uint8_t b)
+    __attribute__((always_inline)) void cpu::XOR(uint8_t &a, uint8_t b)
     {
         a^=b;
         
@@ -426,7 +426,7 @@
         pc.pc+=1;
             }
     
-    inline void cpu::OR(uint8_t &a, uint8_t b)
+    __attribute__((always_inline)) void cpu::OR(uint8_t &a, uint8_t b)
     {
         a|=b;        
         
@@ -442,7 +442,7 @@
         pc.pc+=1;
             }
 
-    inline void cpu::CP(uint8_t &a, uint8_t b)
+    __attribute__((always_inline)) void cpu::CP(uint8_t &a, uint8_t b)
     {
         if(a == b){
             af.bytes.f |= 0b10000000;
@@ -464,13 +464,13 @@
             }
 
 
-    inline void cpu::INC(uint16_t &value)
+    __attribute__((always_inline)) void cpu::INC(uint16_t &value)
     {
         value+=1;
         pc.pc+=1;
             }
 
-    inline void cpu::INC(uint8_t &byte)
+    __attribute__((always_inline)) void cpu::INC(uint8_t &byte)
     {
         Zflag(byte, 1);
         af.bytes.f &= 0b10111111; //N flag
@@ -479,13 +479,13 @@
         pc.pc+=1;
             }
 
-    inline void cpu::DEC(uint16_t &value)
+    __attribute__((always_inline)) void cpu::DEC(uint16_t &value)
     {
         value-=1;
         pc.pc+=1;
             }
 
-    inline void cpu::DEC(uint8_t &byte)
+    __attribute__((always_inline)) void cpu::DEC(uint8_t &byte)
     {
         Zflag_sub(byte, -1);
         af.bytes.f |= 0b01000000;
@@ -494,7 +494,7 @@
         pc.pc+=1;
             }
     
-    inline void cpu::RLC(uint8_t &byte)
+    __attribute__((always_inline)) void cpu::RLC(uint8_t &byte)
     {
         bool carry = byte & 0b10000000;
         byte <<= 1;
@@ -519,7 +519,7 @@
                
     }
 
-    inline void cpu::RRC(uint8_t &byte)
+    __attribute__((always_inline)) void cpu::RRC(uint8_t &byte)
     {
         uint8_t carry = byte & 0b00000001;
         byte >>= 1;
@@ -543,7 +543,7 @@
         pc.pc+=1;
             }
     
-    inline void cpu::RL(uint8_t &byte)
+    __attribute__((always_inline)) void cpu::RL(uint8_t &byte)
     {
         bool carry = byte & 0b10000000;
         byte <<= 1;
@@ -567,7 +567,7 @@
         pc.pc+=1;
             }
 
-    inline void cpu::RR(uint8_t &byte)
+    __attribute__((always_inline)) void cpu::RR(uint8_t &byte)
     {
         bool carry = byte & 0b00000001;
         byte >>= 1;
@@ -592,7 +592,7 @@
                  
     }
 
-    inline void cpu::SLA(uint8_t &byte)
+    __attribute__((always_inline)) void cpu::SLA(uint8_t &byte)
     {
         bool carry = byte & 0b10000000;
         byte <<= 1;
@@ -615,7 +615,7 @@
         pc.pc+=1;
             }
 
-    inline void cpu::SRA(uint8_t &byte)
+    __attribute__((always_inline)) void cpu::SRA(uint8_t &byte)
     {
         uint8_t carry = byte & 0b00000001;
         byte = (uint8_t)((((char)byte) >> 1));
@@ -639,7 +639,7 @@
               
     }
 
-    inline void cpu::SWAP(uint8_t &byte)
+    __attribute__((always_inline)) void cpu::SWAP(uint8_t &byte)
     {
         uint8_t newLow = (byte & 0xf0) >> 4;
         byte <<= 4;
@@ -657,7 +657,7 @@
 
     }
 
-    inline void cpu::SRL(uint8_t &byte)
+    __attribute__((always_inline)) void cpu::SRL(uint8_t &byte)
     {
         bool carry = byte & 0b00000001;
         byte >>= 1;
@@ -682,7 +682,7 @@
         
     }
 
-    inline void cpu::BIT(uint8_t &byte, uint8_t bitNum)
+    __attribute__((always_inline)) void cpu::BIT(uint8_t &byte, uint8_t bitNum)
     {
         if(!(byte & bitNum))
         {
@@ -697,14 +697,14 @@
         pc.pc+=1;
         }
 
-    inline void cpu::RES(uint8_t &byte, uint8_t bitNum)
+    __attribute__((always_inline)) void cpu::RES(uint8_t &byte, uint8_t bitNum)
     {
         byte &= ~bitNum;
         pc.pc+=1;
             }
 
 
-    inline void cpu::SET(uint8_t &byte, uint8_t bitNum)
+    __attribute__((always_inline)) void cpu::SET(uint8_t &byte, uint8_t bitNum)
     {
         byte |= bitNum;
         pc.pc+=1;
@@ -720,15 +720,6 @@
         checkInterrupts();
 
         opcode = Bus->read(pc.pc);
-        uint8_t opcodeH = (opcode & 0xF0) >> 4;
-        uint8_t opcodeL = opcode & 0x0F;
-
-
-        if(pc.pc == 0x0100)
-        {
-            bootRomDone = true;
-           // debug = true;
-        }
 
         cycles = CYCLE_TABLE[opcode];
 
@@ -1731,8 +1722,8 @@
 
         cb:
         opcode = Bus->read(pc.pc);//gets new opcode
-        opcodeH = (opcode & 0xF0) >> 4;
-        opcodeL = opcode & 0x0F;
+        uint8_t opcodeH = (opcode & 0xF0) >> 4;
+        uint8_t opcodeL = opcode & 0x0F;
 
         cycles = CYCLE_TABLE_CB[opcode];
 

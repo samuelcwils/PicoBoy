@@ -7,6 +7,7 @@
 #include "pico/multicore.h"
 #include "pico_explorer.hpp"
 #include "pico_graphics.hpp"
+#include "cpu.cpp"
 #include <chrono>
 #include <thread>
 
@@ -64,6 +65,7 @@ int main()
 
     while(true)
     {
+        uint64_t start = time_us_64();
         while(!PPU->frameDone)
         {             
             if(!(PPU->regs.bytes.LCDC & 0b10000000)) //doesn't tick ppu while not enabled
@@ -82,7 +84,11 @@ int main()
 
             }
         
-        }    
+        }
+        uint64_t stop = time_us_64();    
+        uint64_t length = stop - start;
+
+        printf("Emulation: %llu\n", length);
 
         frameDone = true;
 

@@ -86,6 +86,7 @@ public:
 
     int fifoSize;
     int scrollingLeft;
+    int amountScrolled;
     int xPos;
    
     struct{
