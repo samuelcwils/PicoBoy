@@ -2,6 +2,17 @@
     "cortex-debug.openocdPath": "C:/Users/Sam/Desktop/openocd/openocd.exe",
     "cortex-debug.gdbPath": "arm-none-eabi-gdb",
     "files.associations": {
-        "string_view": "cpp"
+        "string_view": "cpp",
+        "st7789.c": "cpp",
+        "spi.h": "c",
+        "*.tcc": "cpp",
+        "unordered_map": "cpp",
+        "istream": "cpp",
+        "numeric": "cpp",
+        "ostream": "cpp",
+        "sstream": "cpp",
+        "atomic": "cpp",
+        "iomanip": "cpp",
+        "thread": "cpp"
     }
 }

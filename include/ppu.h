@@ -2,16 +2,17 @@
 #include "stdint.h"
 #include "bus.h"
 #include "cpu.h"
-#include "pico/util/queue.h"
-#include "hardware/timer.h"
-#include "pico/multicore.h"
 #include "cpu.h"
-#include <queue>
+#include "pico_explorer.hpp"
+#include "pico_graphics.hpp"
+#include "pico/multicore.h"
 #include <cstdlib>
 #include <cmath>
 
 class cpu;
 class bus;
+
+using namespace pimoroni;
 
 class ppu {
 public:
@@ -58,7 +59,9 @@ public:
 
     void connectBus(bus* Bus);
     void connectCPU(cpu* CPU);
-    void initQueue();
+    void connectPico(PicoExplorer* Pico);
+    void drawLine();
+    void drawLineLow();
 
     void DMA(uint16_t nn);
 
@@ -69,10 +72,7 @@ public:
     void drawTiles(); //debug thing
 
     uint64_t totalLength = 0;
-
     int totalFrames = 0;
-
-    bool core1_done;
 
     struct{
         uint16_t data[8];
@@ -133,10 +133,10 @@ public:
 	Transfer = 3,
     };
 
-
     uint8_t statusMode;
     int totalTicks;
     bus* Bus;
     cpu* CPU;
+    PicoExplorer* Pico;
 
 };

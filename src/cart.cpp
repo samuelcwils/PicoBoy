@@ -1,9 +1,8 @@
 #include "cart.h"
 
-cart::cart(uint8_t* rom, uint8_t* bootRom, uint32_t romSize)
+cart::cart(uint8_t* rom, uint32_t romSize)
 {
     this->rom = rom;
-    this->bootRom = bootRom;
     this->romSize = romSize;
 
     int ramSizeLookup[6] = {0, 0, 0x2000, 0x8000, 0x20000, 0x10000};

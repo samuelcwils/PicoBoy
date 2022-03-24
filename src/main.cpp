@@ -3,16 +3,18 @@
 #include "cpu.h"
 #include "incbin.h"
 #include "hardware/timer.h"
+#include "hardware/vreg.h"
 #include "pico/stdio.h"
 #include "pico/multicore.h"
 #include "pico_explorer.hpp"
 #include "pico_graphics.hpp"
+#include "hardware/clocks.h"
+#include "hardware/pll.h"
 #include "cpu.cpp"
 #include <chrono>
 #include <thread>
 
 extern "C" INCBIN(Rom, "gameboy.gb"); 
-extern "C" INCBIN(Boot, "dmg_boot.bin"); 
 
 using namespace std::chrono_literals;
 using namespace std::chrono;
@@ -26,17 +28,31 @@ static cart* cartridge;
 static ppu* PPU;
 static bus* Bus;
 static cpu* CPU;
-static PicoExplorer* Pico;
+static PicoExplorer* Pico_p;
 
 bool CPU_active = false;
 
+#define PLL_SYS_KHZ (133 * 1000)
+
 int main()
 {     
+
+    vreg_set_voltage(VREG_VOLTAGE_1_30);
+    set_sys_clock_khz(420000, true);
+       
+    clock_configure(
+    clk_peri,
+    0,                                                // No glitchless mux
+    CLOCKS_CLK_PERI_CTRL_AUXSRC_VALUE_CLKSRC_PLL_SYS, // System PLL on AUX mux
+    PLL_SYS_KHZ * 1000,                               // Input frequency
+    PLL_SYS_KHZ * 1000                                // Output (must be same as no divider)
+    );
+
     stdio_init_all();
 
     int frames = 0;
 
-    cartridge = new cart( (uint8_t*)gRomData, (uint8_t*) gBootData, gRomSize);
+    cartridge = new cart( (uint8_t*)gRomData, (uint32_t)gRomSize);
    
     PPU = new ppu();
 
@@ -45,45 +61,34 @@ int main()
 
     PPU->connectBus(Bus);
     PPU->connectCPU(CPU);
+    PPU->connectPico(Pico_p);
     Bus->connectCPU(CPU);
     
-    uint16_t buffer[PicoExplorer::WIDTH * PicoExplorer::HEIGHT];
-    Pico = new PicoExplorer(buffer);
-    Pico->init();
+    uint16_t* buffer = new uint16_t[PicoExplorer::WIDTH * PicoExplorer::HEIGHT];
+
+    for(int i = 0; i < 57600; i++)
+    {
+        buffer[i] = 0;
+    }
+
+    PicoExplorer Pico(buffer);
+    Pico_p = &Pico;
+    Pico.init();
 
     PPU->frameBuffer = buffer;
 
     cartridge->printCart();
-
-    if(!set_sys_clock_khz(270000, true))
-    {
-        while(true)
-        {
-            printf("ERROR");
-        }
-    }
 
     while(true)
     {
         uint64_t start = time_us_64();
         while(!PPU->frameDone)
         {             
-            if(!(PPU->regs.bytes.LCDC & 0b10000000)) //doesn't tick ppu while not enabled
-            {
-                CPU->execOP();
-                CPU->updateTimers(); 
-                CPU->cycles = 0;
-
-            } else 
-            {               
-                CPU->execOP();
-                CPU->updateTimers();
-                PPU->tick();
-        
-                CPU->cycles = 0;
-
-            }
-        
+            CPU->execOP();
+            CPU->updateTimers();
+            PPU->tick();
+    
+            CPU->cycles = 0;
         }
         uint64_t stop = time_us_64();    
         uint64_t length = stop - start;
@@ -92,7 +97,15 @@ int main()
 
         frameDone = true;
 
-        Pico->update();
+        start = time_us_64();
+
+        Pico.update();
+        
+        stop = time_us_64();
+        length = stop - start;
+
+        printf("CLK_SYS: %u\n", clock_get_hz(clk_sys));
+        printf("Screen: %llu\n", length);
 
         PPU->frameDone = false;
             
