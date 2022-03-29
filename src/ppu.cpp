@@ -73,13 +73,8 @@ void ppu::drawLine()
     int i = 0;
 
     int yPos = ((regs.bytes.LY) * 240);
-    int xPos_offset = xPos;
+    xPos;
 
-    float xDraw = 0;
-    float desiredX = 0;
-    float desiredY = 0;
-    float scaleX = 1.5;
-    float scaleY = 1.666;
 
     while(i != 20)
     {
@@ -87,23 +82,10 @@ void ppu::drawLine()
         fetcher.lowLine = vRam.vRam[fetcher.dataBase + (fetcher.tileID * 16) + (fetcher.tileLine * 2)];
         fetcher.highLine = vRam.vRam[fetcher.dataBase + (fetcher.tileID * 16) + (fetcher.tileLine * 2) + 1];
 
-        int fullLine[8] = {0};
-
         for(int i = 7; i > -1; i--)
         {
-            fullLine[i] = lookup[((( (fetcher.highLine & ((1 << i))) << 1) + (fetcher.lowLine & (1 << i))) >> i)];
+            frameBuffer[yPos + xPos] = lookup[((( (fetcher.highLine & ((1 << i))) << 1) + (fetcher.lowLine & (1 << i))) >> i)];
             xPos++;
-            xPos_offset++;
-        }
-
-        for(int i = 0; i < 12; i++)
-        {
-            desiredX = roundf((xDraw / scaleX));
-            desiredY = roundf(((float)regs.bytes.LY) / scaleY);
-
-            
-
-            xDraw++
         }
 
         fetcher.tileCollumn++;
