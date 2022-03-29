@@ -3,16 +3,12 @@
 #include "bus.h"
 #include "cpu.h"
 #include "cpu.h"
-#include "pico_explorer.hpp"
-#include "pico_graphics.hpp"
 #include "pico/multicore.h"
 #include <cstdlib>
 #include <cmath>
 
 class cpu;
 class bus;
-
-using namespace pimoroni;
 
 class ppu {
 public:
@@ -59,7 +55,6 @@ public:
 
     void connectBus(bus* Bus);
     void connectCPU(cpu* CPU);
-    void connectPico(PicoExplorer* Pico);
     void drawLine();
     void drawLineLow();
 
@@ -137,6 +132,5 @@ public:
     int totalTicks;
     bus* Bus;
     cpu* CPU;
-    PicoExplorer* Pico;
 
 };

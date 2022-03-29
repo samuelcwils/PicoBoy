@@ -31,7 +31,7 @@ public:
     void interruptFlags(uint8_t flag); //ORs input flags with IF register
 
     uint8_t joypad;
-    uint8_t joypad_state;
+    uint8_t joypad_state; //top 4 bits are action buttons / bottom 4 bits are directions
     bool PPU_read;
 };
 

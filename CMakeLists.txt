@@ -1,11 +1,10 @@
 cmake_minimum_required(VERSION 3.20.3)
 
 include(external/pico_sdk_import.cmake)
-include(external/pimoroni-pico/libraries/pico_explorer/pico_explorer.cmake)
+include(external/pimoroni_pico_import.cmake)
 
 project(PicoGameboy)
 set(CMAKE_CXX_STANDARD 17)
-
 
 pico_sdk_init()
 
@@ -18,18 +17,21 @@ add_executable(${PROJECT_NAME}
 	src/MBC1.cpp
 )
 
+include(${PIMORONI_PICO_PATH}/drivers/st7789/st7789.cmake)
 
 include_directories(${PROJECT_NAME}
 	${CMAKE_CURRENT_SOURCE_DIR}/include
 	${CMAKE_CURRENT_SOURCE_DIR}/external/incbin
+	${PIMORONI_PICO_PATH}/drivers/st7789
 )
 
 
 target_link_libraries(${PROJECT_NAME} 
 	pico_stdlib
 	pico_multicore
-	pico_explorer
 	hardware_clocks
+	st7789
+	hardware_gpio
 )
 
 
