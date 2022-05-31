@@ -16,29 +16,99 @@
 
 extern "C" INCBIN(Rom, "gameboy.gb"); 
 
+using namespace pimoroni;
 using namespace std::chrono_literals;
 using namespace std::chrono;
+#define PLL_SYS_KHZ (133 * 1000)
+
+Cart* cart;
+PPU* ppu;
+Bus* bus;
+CPU* cpu;
 
 bool frameDone = false;
 unsigned long totalInstructions = 0;
-
-using namespace pimoroni;
-
-static cart* cartridge;
-static ppu* PPU;
-static bus* Bus;
-static cpu* CPU;
-
-
 bool CPU_active = false;
 int totalFrames = 0;
+int frames = 0;
 
-#define PLL_SYS_KHZ (133 * 1000)
+void doInput()
+{
+    totalInstructions++;
+
+    if(!(totalInstructions % 1000))
+    {
+        if(gpio_get(0)) //up
+        {
+            bus->joypad_state &= 0b11111011;
+            cpu->IF |= 0b00010000;
+        } else {
+            bus->joypad_state |= 0b00000100;
+        }
+
+        if(gpio_get(1)) //right
+        {
+            bus->joypad_state &= 0b11111110;
+            cpu->IF |= 0b00010000;
+        } else {
+            bus->joypad_state |= 0b00000001;
+        }
+
+        if(gpio_get(2)) //down
+        {
+            bus->joypad_state &= 0b11110111;
+            cpu->IF |= 0b00010000;
+        } else {
+            bus->joypad_state |= 0b00001000;
+        }
+
+        if(gpio_get(3)) //left
+        {
+            bus->joypad_state &= 0b11111101;
+            cpu->IF |= 0b00010000;
+        } else {
+            bus->joypad_state |= 0b00000010;
+        }
+
+        if(!gpio_get(12))//start
+        {
+            bus->joypad_state &= 0b01111111;
+            cpu->IF |= 0b00010000;
+        } else {
+            bus->joypad_state |= 0b10000000;
+        }
+
+        if(!gpio_get(13))//select
+        {
+            bus->joypad_state &= 0b10111111;
+            cpu->IF |= 0b00010000;
+        } else {
+            bus->joypad_state |= 0b01000000;
+        }
+
+        if(!gpio_get(14))
+        {
+            bus->joypad_state &= 0b11101111;
+            cpu->IF |= 0b00010000;
+        } else {
+            bus->joypad_state |= 0b00010000;
+        }
+
+        if(!gpio_get(15))
+        {
+            bus->joypad_state &= 0b11011111;
+            cpu->IF |= 0b00010000;
+        } else {
+            bus->joypad_state |= 0b00100000;
+        }
+
+    }
+}
 
 int main()
 {     
-    vreg_set_voltage(VREG_VOLTAGE_1_30);
-    set_sys_clock_khz(420000, true);
+    vreg_set_voltage(VREG_VOLTAGE_1_10);
+    set_sys_clock_khz(240000, true);
 
     clock_configure(
     clk_peri,
@@ -50,21 +120,19 @@ int main()
 
     stdio_init_all();
 
-    int frames = 0;
+
+    cart = new Cart( (uint8_t*)gRomData, (uint32_t)gRomSize);
+   
+    ppu = new PPU();
+
+    bus = new Bus();
+
+    cpu = new CPU();
 
     uint16_t* buffer = new uint16_t[240 * 240];
+    ppu->frameBuffer = buffer;
 
-    cartridge = new cart( (uint8_t*)gRomData, (uint32_t)gRomSize);
-   
-    PPU = new ppu();
-
-    Bus = new bus(cartridge, PPU);
-    CPU = new cpu(Bus);
     ST7789 lcd(240, 240, buffer);
-
-    PPU->connectBus(Bus);
-    PPU->connectCPU(CPU);
-    Bus->connectCPU(CPU);
 
     for(int i = 0; i < 57600; i++)
     {
@@ -75,9 +143,7 @@ int main()
 
     lcd.update();
 
-    PPU->frameBuffer = buffer;
-
-    cartridge->printCart();
+    cart->printCart();
 
     gpio_init(0); //directions
     gpio_init(1);
@@ -112,84 +178,17 @@ int main()
     while(true)
     {
         uint64_t start = time_us_64();
-        while(!PPU->frameDone)
+        while(!ppu->frameDone)
         {             
-            CPU->execOP();
-            CPU->updateTimers();
-            PPU->tick();
+            cpu->execOP();
+            cpu->updateTimers();
+            ppu->tick();
     
-            CPU->cycles = 0;
+            cpu->cycles = 0;
 
-            totalInstructions++;
-            if(!(totalInstructions % 1000))
-            {
-                if(gpio_get(0)) //up
-                {
-                    Bus->joypad_state &= 0b11111011;
-                    CPU->IF |= 0b00010000;
-                } else {
-                    Bus->joypad_state |= 0b00000100;
-                }
-
-                if(gpio_get(1)) //right
-                {
-                    Bus->joypad_state &= 0b11111110;
-                    CPU->IF |= 0b00010000;
-                } else {
-                    Bus->joypad_state |= 0b00000001;
-                }
-
-                if(gpio_get(2)) //down
-                {
-                    Bus->joypad_state &= 0b11110111;
-                    CPU->IF |= 0b00010000;
-                } else {
-                    Bus->joypad_state |= 0b00001000;
-                }
-
-                if(gpio_get(3)) //left
-                {
-                    Bus->joypad_state &= 0b11111101;
-                    CPU->IF |= 0b00010000;
-                } else {
-                    Bus->joypad_state |= 0b00000010;
-                }
-
-                if(!gpio_get(12))//start
-                {
-                    Bus->joypad_state &= 0b01111111;
-                    CPU->IF |= 0b00010000;
-                } else {
-                    Bus->joypad_state |= 0b10000000;
-                }
-
-                if(!gpio_get(13))//select
-                {
-                    Bus->joypad_state &= 0b10111111;
-                    CPU->IF |= 0b00010000;
-                } else {
-                    Bus->joypad_state |= 0b01000000;
-                }
-
-                if(!gpio_get(14))
-                {
-                    Bus->joypad_state &= 0b11101111;
-                    CPU->IF |= 0b00010000;
-                } else {
-                    Bus->joypad_state |= 0b00010000;
-                }
-
-                if(!gpio_get(15))
-                {
-                    Bus->joypad_state &= 0b11011111;
-                    CPU->IF |= 0b00010000;
-                } else {
-                    Bus->joypad_state |= 0b00100000;
-                }
-
-            }
-
+            doInput();
         }
+
         uint64_t stop = time_us_64();    
         uint64_t length = stop - start;
 
@@ -208,7 +207,7 @@ int main()
         printf("CLK_SYS: %u\n", clock_get_hz(clk_sys));
         printf("Screen: %llu\n", length);
 
-        PPU->frameDone = false;
+        ppu->frameDone = false;
             
         frames++;    
 

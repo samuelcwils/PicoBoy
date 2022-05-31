@@ -1,6 +1,6 @@
-#include "cart.h"
+#include "Cart.h"
 
-cart::cart(uint8_t* rom, uint32_t romSize)
+Cart::Cart(uint8_t* rom, uint32_t romSize)
 {
     this->rom = rom;
     this->romSize = romSize;
@@ -55,16 +55,16 @@ cart::cart(uint8_t* rom, uint32_t romSize)
 
 }
 
-void cart::printCart()
+void Cart::printCart()
 {
     printf("The rom size is: %d\n", romSize);
     printf("The rom's title is: %s\n", title);
-    printf("The cart type is: %i\n", cartType);
-    printf("The cart's ram size is: %d\n", ramSize);
+    printf("The Cart type is: %i\n", cartType);
+    printf("The Cart's ram size is: %d\n", ramSize);
 }
 
 
-void cart::writeRom(uint16_t address, uint8_t value)
+void Cart::writeRom(uint16_t address, uint8_t value)
 {
     switch(cartType)
     {
@@ -82,7 +82,7 @@ void cart::writeRom(uint16_t address, uint8_t value)
 
 }
 
-void cart::writeRam(uint16_t address, uint8_t value)
+void Cart::writeRam(uint16_t address, uint8_t value)
 {
     switch(cartType)
     {

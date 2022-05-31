@@ -1,28 +1,15 @@
 #pragma once
 #include "stdint.h"
-#include "bus.h"
-#include "cpu.h"
-#include "cpu.h"
+#include "Bus.h"
 #include "pico/multicore.h"
 #include <cstdlib>
 #include <cmath>
 
-class cpu;
-class bus;
 
-class ppu {
+class PPU {  
 public:
-    
-    union{
-        struct{
-            uint8_t tileData[0x1800];
-            struct{
-                uint8_t map1[0x400];
-                uint8_t map2[0x400];
-            } maps;
-        } blocks;
-        uint8_t vRam[0x2000];
-    } vRam;
+
+    uint8_t vRam[0x2000];
 
     uint8_t oam[160];
 
@@ -32,7 +19,9 @@ public:
     bool VRAM_access;
     bool disableFlag;
 
-    union{
+    void DMA(uint16_t nn);
+
+     union{
         struct {
             uint8_t LCDC; //FF40
             uint8_t STAT; //FF41
@@ -50,17 +39,14 @@ public:
         uint8_t regs[12];
 
     } regs;
-
-    ppu();
-
-    void connectBus(bus* Bus);
-    void connectCPU(cpu* CPU);
-    void drawLine();
-    void drawLineLow();
-
-    void DMA(uint16_t nn);
+    
+    PPU();
 
     void tick();
+
+private:
+
+    void drawLine();
 
     void drawTile(int x, int y, int index); //debug thing
 
@@ -130,7 +116,5 @@ public:
 
     uint8_t statusMode;
     int totalTicks;
-    bus* Bus;
-    cpu* CPU;
 
 };

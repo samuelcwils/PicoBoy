@@ -2,14 +2,10 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "bus.h"
 
-class bus;
-class cpu {
+class CPU {
 
 private:
-    bus* Bus; 
-
     inline __attribute__((always_inline)) void Zflag(uint8_t a, uint8_t b); 
     inline __attribute__((always_inline)) void Zflag_sub(uint16_t a, int b); 
     inline __attribute__((always_inline)) void Hflag(uint8_t a, uint8_t b); 
@@ -143,7 +139,7 @@ public:
     int cycles; //counts up cycles then emulates speed
     
 
-    cpu(bus* Bus);
+    CPU();
     void checkInterrupts();
     void updateTimers();
     void execOP();

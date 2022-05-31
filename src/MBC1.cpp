@@ -1,6 +1,6 @@
-#include "cart.h"
+#include "Cart.h"
 
-    void cart::MBC1writeRom(uint16_t address, uint8_t value)
+    void Cart::MBC1writeRom(uint16_t address, uint8_t value)
     {
         if((address <= 0x3fff) && (address >= 0x2000)) //ROM bank first 5 bits
         {
@@ -32,7 +32,7 @@
 
     }
 
-    void cart::MBC1writeRam(uint16_t address, uint8_t value)
+    void Cart::MBC1writeRam(uint16_t address, uint8_t value)
     {
         ramBank[address] = value;
     }

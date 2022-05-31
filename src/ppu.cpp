@@ -1,6 +1,9 @@
-#include "ppu.h"
+#include "PPU.h"
 
-ppu::ppu()
+extern Bus* bus;
+extern CPU* cpu;
+
+PPU::PPU()
 {  
     regs.bytes.LY = 0;
     OAM_access = true;
@@ -21,26 +24,16 @@ ppu::ppu()
     regs.bytes.OBP1 = 0xff;
 }
 
-void ppu::connectBus(bus* Bus)
-{
-    this->Bus = Bus;
-}
-
-void ppu::connectCPU(cpu* CPU)
-{
-    this->CPU = CPU;
-}
-
-void ppu::DMA(uint16_t nn)
+void PPU::DMA(uint16_t nn)
 {
     for(int i = 0; i < 0xa0; i++)
     {
-        oam[i] = Bus->read(nn + i);
+        oam[i] = bus->read(nn + i);
     }
 
 }
 
-void ppu::drawLine()
+void PPU::drawLine()
 {
     if(regs.bytes.LCDC & 0b00001000)
     {
@@ -73,14 +66,12 @@ void ppu::drawLine()
     int i = 0;
 
     int yPos = ((regs.bytes.LY) * 240);
-    xPos;
-
 
     while(i != 20)
     {
-        fetcher.tileID = vRam.vRam[fetcher.tileRowAddr + fetcher.tileCollumn];
-        fetcher.lowLine = vRam.vRam[fetcher.dataBase + (fetcher.tileID * 16) + (fetcher.tileLine * 2)];
-        fetcher.highLine = vRam.vRam[fetcher.dataBase + (fetcher.tileID * 16) + (fetcher.tileLine * 2) + 1];
+        fetcher.tileID = vRam[fetcher.tileRowAddr + fetcher.tileCollumn];
+        fetcher.lowLine = vRam[fetcher.dataBase + (fetcher.tileID * 16) + (fetcher.tileLine * 2)];
+        fetcher.highLine = vRam[fetcher.dataBase + (fetcher.tileID * 16) + (fetcher.tileLine * 2) + 1];
 
         for(int i = 7; i > -1; i--)
         {
@@ -125,8 +116,8 @@ void ppu::drawLine()
                     highline_offset = 1;
                 }
 
-                uint8_t lowLine = vRam.vRam[(id* 16) + (spriteLine * 2)];
-                uint8_t highLine = vRam.vRam[(id * 16) + (spriteLine * 2) + highline_offset];
+                uint8_t lowLine = vRam[(id* 16) + (spriteLine * 2)];
+                uint8_t highLine = vRam[(id * 16) + (spriteLine * 2) + highline_offset];
 
                 int sprite_xPos = oam[i + 1] - 1; //offset by one
 
@@ -140,14 +131,14 @@ void ppu::drawLine()
     }
 }
 
-void ppu::tick()
+void PPU::tick()
 {
     if(!(regs.bytes.LCDC & 0b10000000))
     {
         return;
     }
 
-    totalTicks += CPU->cycles;
+    totalTicks += cpu->cycles;
     statusMode = regs.bytes.STAT & 0b00000011;
 
     if(regs.bytes.LY > 144)
@@ -156,11 +147,11 @@ void ppu::tick()
         {
             VRAM_access = true;
             OAM_access = true;
-            CPU->IF |= 0b00000001; //sends vblank interrupt
+            cpu->IF |= 0b00000001; //sends vblank interrupt
             regs.bytes.STAT &= 0b00000100;
             regs.bytes.STAT |= vBlank;
             regs.bytes.STAT |= 0b00010000; //interrupt source
-            Bus->interruptFlags(0b00000010);
+            bus->interruptFlags(0b00000010);
         }
 
         if(totalTicks >= 456)
@@ -184,7 +175,7 @@ void ppu::tick()
             regs.bytes.STAT &= 0000000100;
             regs.bytes.STAT |= OAM;
             regs.bytes.STAT |= 0b00100000; //interrupt source
-            Bus->interruptFlags(0b00000010);
+            bus->interruptFlags(0b00000010);
         }
 
     } else if(totalTicks < 253){
@@ -197,7 +188,7 @@ void ppu::tick()
             regs.bytes.STAT &= 0000000100;
             regs.bytes.STAT |= Transfer;
             regs.bytes.STAT |= 0b00001000; //interrupt source
-            Bus->interruptFlags(0b00000010);
+            bus->interruptFlags(0b00000010);
 
         }
 
@@ -210,7 +201,7 @@ void ppu::tick()
             regs.bytes.STAT &= 0000000100;
             regs.bytes.STAT |= hBlank;
             regs.bytes.STAT |= 0b00001000; //interrupt source
-            Bus->interruptFlags(0b00000010);
+            bus->interruptFlags(0b00000010);
         }
 
     } else {

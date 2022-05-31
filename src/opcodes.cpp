@@ -1,4 +1,6 @@
-#include "cpu.h"
+#include "CPU.h"
+
+    extern Bus* bus;
 
     static const unsigned char CYCLE_TABLE[0x100] = {
     4,12,8,8,4,4,8,4,20,8,8,8,4,4,8,4,4,
@@ -58,7 +60,7 @@
     };
 
 
-    inline __attribute__((always_inline)) void cpu::Zflag(uint8_t a, uint8_t b)
+    inline __attribute__((always_inline)) void CPU::Zflag(uint8_t a, uint8_t b)
     {
         uint16_t temp = ((uint16_t)(a + b));
         if(((uint8_t)temp) == 0) {
@@ -68,7 +70,7 @@
         }
     }
 
-    inline __attribute__((always_inline)) void cpu::Zflag_sub(uint16_t a, int b)
+    inline __attribute__((always_inline)) void CPU::Zflag_sub(uint16_t a, int b)
         {
             if(!(a+b) || ( (a+b) >= 256) ){ //Z flag
                 af.bytes.f |= 0b10000000;
@@ -77,7 +79,7 @@
             }     
         }
     
-    inline __attribute__((always_inline)) void cpu::Hflag(uint8_t a, uint8_t b)
+    inline __attribute__((always_inline)) void CPU::Hflag(uint8_t a, uint8_t b)
     {
         if(((a & 0x0f) + (b & 0x0f)) > 0xf){
             af.bytes.f |= 0b00100000;
@@ -86,7 +88,7 @@
         }
     }
     
-    inline __attribute__((always_inline)) void cpu::Hflag(uint16_t a, uint16_t b)
+    inline __attribute__((always_inline)) void CPU::Hflag(uint16_t a, uint16_t b)
     {
         if(((a & 0xfff) + ((b & 0xfff)) > 0xfff)){ 
             af.bytes.f |= 0b00100000;
@@ -95,7 +97,7 @@
         }
     }
 
-    inline __attribute__((always_inline)) void cpu::Hflag_sub(uint8_t a, uint8_t b)
+    inline __attribute__((always_inline)) void CPU::Hflag_sub(uint8_t a, uint8_t b)
     {
         if((((a & 0xf) - (b & 0xf)))  < 0){
             af.bytes.f |= 0b00100000;
@@ -104,7 +106,7 @@
         }
     }
 
-    inline __attribute__((always_inline)) void cpu::Cflag(uint8_t a, uint8_t b)
+    inline __attribute__((always_inline)) void CPU::Cflag(uint8_t a, uint8_t b)
     {
         int temp = (a + b) >> 8;
         if(temp){
@@ -114,7 +116,7 @@
         }
     }
 
-    inline __attribute__((always_inline)) void cpu::Cflag(uint16_t a, uint16_t b)
+    inline __attribute__((always_inline)) void CPU::Cflag(uint16_t a, uint16_t b)
     {
         int temp = (a + b) >> 16;
         if(temp){
@@ -124,7 +126,7 @@
         }
     }
 
-    inline __attribute__((always_inline)) void cpu::Cflag_sub(uint8_t a, uint8_t b)
+    inline __attribute__((always_inline)) void CPU::Cflag_sub(uint8_t a, uint8_t b)
     {
         int temp = (a - b) >> 8;
         if(temp){
@@ -134,66 +136,66 @@
         }
     }
 
-    inline __attribute__((always_inline)) void cpu::LD_d16(uint8_t &high, uint8_t &low)
+    inline __attribute__((always_inline)) void CPU::LD_d16(uint8_t &high, uint8_t &low)
     {
-        low = Bus->read(pc.pc+1);
-        high = Bus->read(pc.pc+2);
+        low = bus->read(pc.pc+1);
+        high = bus->read(pc.pc+2);
         pc.pc+=3;
                
     }
 
-    inline __attribute__((always_inline)) void cpu::LD_d8(uint8_t &byte)
+    inline __attribute__((always_inline)) void CPU::LD_d8(uint8_t &byte)
     {
-        byte = Bus->read(pc.pc+1);
+        byte = bus->read(pc.pc+1);
         pc.pc+=2;
             }
 
-    inline __attribute__((always_inline)) void cpu::LD_REG1_REG2(uint8_t &a, uint8_t b)
+    inline __attribute__((always_inline)) void CPU::LD_REG1_REG2(uint8_t &a, uint8_t b)
     {
         a = b;
         pc.pc+=1;
             }
     
-    inline __attribute__((always_inline)) void cpu::LD_HL_REG(uint8_t reg)
+    inline __attribute__((always_inline)) void CPU::LD_HL_REG(uint8_t reg)
     {
-        Bus->write(hl.hl, reg);
+        bus->write(hl.hl, reg);
         pc.pc+=1;
             }
 
-    inline __attribute__((always_inline)) void cpu::LD_REG_HL(uint8_t &reg)
+    inline __attribute__((always_inline)) void CPU::LD_REG_HL(uint8_t &reg)
     {
-        reg = Bus->read(hl.hl);
+        reg = bus->read(hl.hl);
         pc.pc+=1;
             }
     
-    inline __attribute__((always_inline)) void cpu::LD_ADDRESS_A(uint16_t address)
+    inline __attribute__((always_inline)) void CPU::LD_ADDRESS_A(uint16_t address)
     {
-        Bus->write(address, af.bytes.a);
+        bus->write(address, af.bytes.a);
         pc.pc+=1;
             }
 
-    inline __attribute__((always_inline)) void cpu::LD_A_ADDRESS(uint16_t address)
+    inline __attribute__((always_inline)) void CPU::LD_A_ADDRESS(uint16_t address)
     {
-        af.bytes.a = Bus->read(address);
+        af.bytes.a = bus->read(address);
         pc.pc+=1;
             }
 
-    inline __attribute__((always_inline)) void cpu::JP_a16()
+    inline __attribute__((always_inline)) void CPU::JP_a16()
     {
         uint16_t temp = pc.pc;
-        pc.bytes.c = Bus->read(temp+1);
-        pc.bytes.p = Bus->read(temp+2);
+        pc.bytes.c = bus->read(temp+1);
+        pc.bytes.p = bus->read(temp+2);
         
     }
 
-    inline __attribute__((always_inline)) void cpu::JR()
+    inline __attribute__((always_inline)) void CPU::JR()
     {
-        int8_t r8 = (int8_t)(Bus->read(pc.pc+1));
+        int8_t r8 = (int8_t)(bus->read(pc.pc+1));
         pc.pc += r8 + 2;
           
     }
 
-    inline __attribute__((always_inline)) void cpu::JR_cond(bool flag)
+    inline __attribute__((always_inline)) void CPU::JR_cond(bool flag)
     {
         if(flag)
         {
@@ -204,7 +206,7 @@
                     }
     }
 
-    inline __attribute__((always_inline)) void cpu::JP_cond(bool flag)
+    inline __attribute__((always_inline)) void CPU::JP_cond(bool flag)
     {
         if(flag)
         {
@@ -216,43 +218,43 @@
         }
     }
 
-    inline __attribute__((always_inline)) void cpu::POP_16b(uint8_t &high, uint8_t &low)
+    inline __attribute__((always_inline)) void CPU::POP_16b(uint8_t &high, uint8_t &low)
     {
-        low = Bus->read(sp.sp);
-        high = Bus->read(sp.sp+=1);
+        low = bus->read(sp.sp);
+        high = bus->read(sp.sp+=1);
         sp.sp+=1;
         pc.pc+=1;
         
     }
 
-    inline __attribute__((always_inline)) void cpu::PUSH_16b(uint8_t high, uint8_t low)
+    inline __attribute__((always_inline)) void CPU::PUSH_16b(uint8_t high, uint8_t low)
     {
         sp.sp--;
-        Bus->write(sp.sp, high);
+        bus->write(sp.sp, high);
         sp.sp--;
-        Bus->write(sp.sp, low); 
+        bus->write(sp.sp, low); 
         pc.pc+=1;
             
     }
 
-    inline __attribute__((always_inline)) void cpu::CALL()
+    inline __attribute__((always_inline)) void CPU::CALL()
     {
         uint16_t temp = 0;
         temp = pc.pc + 3;
         
         sp.sp--;
-        Bus->write(sp.sp, (temp & 0xff00) >> 8);
+        bus->write(sp.sp, (temp & 0xff00) >> 8);
         sp.sp--;
-        Bus->write(sp.sp, temp & 0x00ff);
+        bus->write(sp.sp, temp & 0x00ff);
         
         temp = pc.pc;
 
-        pc.bytes.c = Bus->read(temp+1);
-        pc.bytes.p = Bus->read(temp+2);
+        pc.bytes.c = bus->read(temp+1);
+        pc.bytes.p = bus->read(temp+2);
         
     }
 
-    inline __attribute__((always_inline)) void cpu::CALL_cond(bool flag)
+    inline __attribute__((always_inline)) void CPU::CALL_cond(bool flag)
     {
         if(flag)
         {
@@ -264,29 +266,29 @@
         }
     }
 
-    inline __attribute__((always_inline)) void cpu::RST(uint8_t H)
+    inline __attribute__((always_inline)) void CPU::RST(uint8_t H)
     {      
         uint16_t temp = 0;
         temp = pc.pc + 1;
         
         sp.sp--;
-        Bus->write(sp.sp, (temp & 0xff00) >> 8);
+        bus->write(sp.sp, (temp & 0xff00) >> 8);
         sp.sp--;
-        Bus->write(sp.sp, temp & 0x00ff);
+        bus->write(sp.sp, temp & 0x00ff);
 
         pc.pc = 0x0000+H;
         
     }
 
-    inline __attribute__((always_inline)) void cpu::RET()
+    inline __attribute__((always_inline)) void CPU::RET()
     {
-        pc.bytes.c = Bus->read(sp.sp);
-        pc.bytes.p = Bus->read(sp.sp+=1);
+        pc.bytes.c = bus->read(sp.sp);
+        pc.bytes.p = bus->read(sp.sp+=1);
         sp.sp+=1;
         
     }
 
-    inline __attribute__((always_inline)) void cpu::RET_cond(bool flag)
+    inline __attribute__((always_inline)) void CPU::RET_cond(bool flag)
     {
         if(flag)
         {
@@ -300,7 +302,7 @@
 
     }
 
-    inline __attribute__((always_inline)) void cpu::ADD(uint16_t &a, uint16_t b)
+    inline __attribute__((always_inline)) void CPU::ADD(uint16_t &a, uint16_t b)
     {
   
         af.bytes.f &= 0b10111111; //N flag
@@ -310,7 +312,7 @@
         pc.pc+=1;
             }
     
-    inline __attribute__((always_inline)) void cpu::ADD(uint8_t &a, uint8_t b)
+    inline __attribute__((always_inline)) void CPU::ADD(uint8_t &a, uint8_t b)
     {
         Zflag(a, b);
         af.bytes.f &= 0b10111111; //N flag
@@ -320,7 +322,7 @@
         pc.pc+=1;
             }
 
-    inline __attribute__((always_inline)) void cpu::ADC(uint8_t &a, uint8_t b)
+    inline __attribute__((always_inline)) void CPU::ADC(uint8_t &a, uint8_t b)
     {
         uint16_t result = (uint16_t)(a + b + ((af.bytes.f & 0b00010000) >> 4));
         uint16_t halfResult = (uint16_t)((a & 0xf) + (b & 0xf) + ((af.bytes.f & 0b00010000) >> 4));
@@ -350,7 +352,7 @@
         pc.pc+=1;
             }
 
-    inline __attribute__((always_inline)) void cpu::SUB(uint8_t &a, uint8_t b)
+    inline __attribute__((always_inline)) void CPU::SUB(uint8_t &a, uint8_t b)
     {
         Zflag_sub(a, -b);
         af.bytes.f |= 0b01000000; //N flag
@@ -361,7 +363,7 @@
              
     }
 
-    inline __attribute__((always_inline)) void cpu::SBC(uint8_t &a, uint8_t b)
+    inline __attribute__((always_inline)) void CPU::SBC(uint8_t &a, uint8_t b)
     {
         uint16_t result = (uint16_t)(a - b - ((af.bytes.f & 0b00010000) >> 4));
         uint16_t halfResult = (uint16_t)((a & 0xf) - (b & 0xf) - ((af.bytes.f & 0b00010000) >> 4));
@@ -392,7 +394,7 @@
            
     }
 
-    inline __attribute__((always_inline)) void cpu::AND(uint8_t &a, uint8_t b)
+    inline __attribute__((always_inline)) void CPU::AND(uint8_t &a, uint8_t b)
     {
         a&=b;
         
@@ -409,7 +411,7 @@
         pc.pc+=1;
             }
 
-    inline __attribute__((always_inline)) void cpu::XOR(uint8_t &a, uint8_t b)
+    inline __attribute__((always_inline)) void CPU::XOR(uint8_t &a, uint8_t b)
     {
         a^=b;
         
@@ -426,7 +428,7 @@
         pc.pc+=1;
             }
     
-    inline __attribute__((always_inline)) void cpu::OR(uint8_t &a, uint8_t b)
+    inline __attribute__((always_inline)) void CPU::OR(uint8_t &a, uint8_t b)
     {
         a|=b;        
         
@@ -442,7 +444,7 @@
         pc.pc+=1;
             }
 
-    inline __attribute__((always_inline)) void cpu::CP(uint8_t &a, uint8_t b)
+    inline __attribute__((always_inline)) void CPU::CP(uint8_t &a, uint8_t b)
     {
         if(a == b){
             af.bytes.f |= 0b10000000;
@@ -464,13 +466,13 @@
             }
 
 
-    inline __attribute__((always_inline)) void cpu::INC(uint16_t &value)
+    inline __attribute__((always_inline)) void CPU::INC(uint16_t &value)
     {
         value+=1;
         pc.pc+=1;
             }
 
-    inline __attribute__((always_inline)) void cpu::INC(uint8_t &byte)
+    inline __attribute__((always_inline)) void CPU::INC(uint8_t &byte)
     {
         Zflag(byte, 1);
         af.bytes.f &= 0b10111111; //N flag
@@ -479,13 +481,13 @@
         pc.pc+=1;
             }
 
-    inline __attribute__((always_inline)) void cpu::DEC(uint16_t &value)
+    inline __attribute__((always_inline)) void CPU::DEC(uint16_t &value)
     {
         value-=1;
         pc.pc+=1;
             }
 
-    inline __attribute__((always_inline)) void cpu::DEC(uint8_t &byte)
+    inline __attribute__((always_inline)) void CPU::DEC(uint8_t &byte)
     {
         Zflag_sub(byte, -1);
         af.bytes.f |= 0b01000000;
@@ -494,7 +496,7 @@
         pc.pc+=1;
             }
     
-    inline __attribute__((always_inline)) void cpu::RLC(uint8_t &byte)
+    inline __attribute__((always_inline)) void CPU::RLC(uint8_t &byte)
     {
         bool carry = byte & 0b10000000;
         byte <<= 1;
@@ -519,7 +521,7 @@
                
     }
 
-    inline __attribute__((always_inline)) void cpu::RRC(uint8_t &byte)
+    inline __attribute__((always_inline)) void CPU::RRC(uint8_t &byte)
     {
         uint8_t carry = byte & 0b00000001;
         byte >>= 1;
@@ -543,7 +545,7 @@
         pc.pc+=1;
             }
     
-    inline __attribute__((always_inline)) void cpu::RL(uint8_t &byte)
+    inline __attribute__((always_inline)) void CPU::RL(uint8_t &byte)
     {
         bool carry = byte & 0b10000000;
         byte <<= 1;
@@ -567,7 +569,7 @@
         pc.pc+=1;
             }
 
-    inline __attribute__((always_inline)) void cpu::RR(uint8_t &byte)
+    inline __attribute__((always_inline)) void CPU::RR(uint8_t &byte)
     {
         bool carry = byte & 0b00000001;
         byte >>= 1;
@@ -592,7 +594,7 @@
                  
     }
 
-    inline __attribute__((always_inline)) void cpu::SLA(uint8_t &byte)
+    inline __attribute__((always_inline)) void CPU::SLA(uint8_t &byte)
     {
         bool carry = byte & 0b10000000;
         byte <<= 1;
@@ -615,7 +617,7 @@
         pc.pc+=1;
             }
 
-    inline __attribute__((always_inline)) void cpu::SRA(uint8_t &byte)
+    inline __attribute__((always_inline)) void CPU::SRA(uint8_t &byte)
     {
         uint8_t carry = byte & 0b00000001;
         byte = (uint8_t)((((char)byte) >> 1));
@@ -639,7 +641,7 @@
               
     }
 
-    inline __attribute__((always_inline)) void cpu::SWAP(uint8_t &byte)
+    inline __attribute__((always_inline)) void CPU::SWAP(uint8_t &byte)
     {
         uint8_t newLow = (byte & 0xf0) >> 4;
         byte <<= 4;
@@ -657,7 +659,7 @@
 
     }
 
-    inline __attribute__((always_inline)) void cpu::SRL(uint8_t &byte)
+    inline __attribute__((always_inline)) void CPU::SRL(uint8_t &byte)
     {
         bool carry = byte & 0b00000001;
         byte >>= 1;
@@ -682,7 +684,7 @@
         
     }
 
-    inline __attribute__((always_inline)) void cpu::BIT(uint8_t &byte, uint8_t bitNum)
+    inline __attribute__((always_inline)) void CPU::BIT(uint8_t &byte, uint8_t bitNum)
     {
         if(!(byte & bitNum))
         {
@@ -697,20 +699,20 @@
         pc.pc+=1;
         }
 
-    inline __attribute__((always_inline)) void cpu::RES(uint8_t &byte, uint8_t bitNum)
+    inline __attribute__((always_inline)) void CPU::RES(uint8_t &byte, uint8_t bitNum)
     {
         byte &= ~bitNum;
         pc.pc+=1;
             }
 
 
-    inline __attribute__((always_inline)) void cpu::SET(uint8_t &byte, uint8_t bitNum)
+    inline __attribute__((always_inline)) void CPU::SET(uint8_t &byte, uint8_t bitNum)
     {
         byte |= bitNum;
         pc.pc+=1;
             }
 
-    void cpu::execOP()
+    void CPU::execOP()
     {
         //////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////
@@ -719,7 +721,7 @@
 
         checkInterrupts();
 
-        opcode = Bus->read(pc.pc);
+        opcode = bus->read(pc.pc);
 
         cycles = CYCLE_TABLE[opcode];
 
@@ -753,10 +755,10 @@
             case 0x8: //LD a16, SP
             {
                 uint16_t a16 = 0;
-                a16 |= Bus->read(pc.pc+1);//get low byte
-                a16 |= (Bus->read(pc.pc+2) << 8); // get high byte
-                Bus->write(a16, sp.sp & 0x00ff);
-                Bus->write(a16 + 1, (sp.sp & 0xff00) >> 8);
+                a16 |= bus->read(pc.pc+1);//get low byte
+                a16 |= (bus->read(pc.pc+2) << 8); // get high byte
+                bus->write(a16, sp.sp & 0x00ff);
+                bus->write(a16 + 1, (sp.sp & 0xff00) >> 8);
                 pc.pc+=3;
                 
                 break;
@@ -941,30 +943,30 @@
                 break;
             case 0x34://INC (HL) (Z 0 H -)
             {
-                uint8_t temp = Bus->read(hl.hl);
+                uint8_t temp = bus->read(hl.hl);
                 Zflag(temp, 1);
                 af.bytes.f &= 0b10111111; //N flag
                 Hflag(temp, 1);
                 temp++;
-                Bus->write(hl.hl, temp);
+                bus->write(hl.hl, temp);
                 pc.pc+=1;
                 
                 break;
             }
             case 0x35://DEC (HL) (Z 1 H -)
             {
-                uint8_t temp = Bus->read(hl.hl);
+                uint8_t temp = bus->read(hl.hl);
                 Zflag_sub(temp, -1);
                 af.bytes.f |= 0b01000000; //N flag
                 Hflag_sub(temp, 1);
                 temp--;
-                Bus->write(hl.hl, temp);
+                bus->write(hl.hl, temp);
                 pc.pc+=1;
                 
                 break;
             }
             case 0x36://LD (HL),d8
-                Bus->write(hl.hl, Bus->read(pc.pc+1));
+                bus->write(hl.hl, bus->read(pc.pc+1));
                 pc.pc+=2;
                 
                 break;
@@ -1225,7 +1227,7 @@
                 ADD(af.bytes.a, hl.bytes.l);
                 break;
             case 0x86://ADD A,(HL) (Z 0 H C)
-                ADD(af.bytes.a, Bus->read(hl.hl));
+                ADD(af.bytes.a, bus->read(hl.hl));
                 //extra time for hl
                 break;
             case 0x87://ADD A,A (Z 0 H C)
@@ -1250,7 +1252,7 @@
                 ADC(af.bytes.a, hl.bytes.l);
                 break;
             case 0x8e://ADC A,(HL) (Z 0 H C)
-                ADC(af.bytes.a, Bus->read(hl.hl));
+                ADC(af.bytes.a, bus->read(hl.hl));
                 //extra time for hl
                 break;
             case 0x8f://ADC A,A (Z 0 H C)
@@ -1275,7 +1277,7 @@
                 SUB(af.bytes.a, hl.bytes.l);
                 break;
             case 0x96://SUB (HL) (Z 1 H C)
-                SUB(af.bytes.a, Bus->read(hl.hl));
+                SUB(af.bytes.a, bus->read(hl.hl));
                 //extra time for hl
                 break;
             case 0x97://SUB A (Z 1 H C)
@@ -1300,7 +1302,7 @@
                 SBC(af.bytes.a, hl.bytes.l);
                 break;
             case 0x9e://SBC A,(HL) (Z 1 H C)
-                SBC(af.bytes.a, Bus->read(hl.hl));
+                SBC(af.bytes.a, bus->read(hl.hl));
                                         break;
             case 0x9f://SBC A,A (Z 1 H C)
                 SBC(af.bytes.a, af.bytes.a);
@@ -1325,7 +1327,7 @@
                 AND(af.bytes.a, hl.bytes.l);
                 break;
             case 0xa6://AND (HL) (Z 0 1 0)
-                AND(af.bytes.a, Bus->read(hl.hl));
+                AND(af.bytes.a, bus->read(hl.hl));
                 //extra time for hl
                 break;
             case 0xa7://AND A (Z 0 1 0)
@@ -1350,7 +1352,7 @@
                 XOR(af.bytes.a, hl.bytes.l);
                 break;
             case 0xae://XOR (HL) (Z 0 0 0)
-                XOR(af.bytes.a, Bus->read(hl.hl));
+                XOR(af.bytes.a, bus->read(hl.hl));
                                         break;
             case 0xaf://XOR A (Z 0 0 0)
                 XOR(af.bytes.a, af.bytes.a);
@@ -1375,7 +1377,7 @@
                 OR(af.bytes.a, hl.bytes.l);
                 break;
             case 0xb6://OR (HL) (Z 0 0 0)
-                OR(af.bytes.a, Bus->read(hl.hl));
+                OR(af.bytes.a, bus->read(hl.hl));
                 //extra time for hl
                 break;
             case 0xb7://OR A (Z 0 0 0)
@@ -1400,7 +1402,7 @@
                 CP(af.bytes.a, hl.bytes.l);
                 break;
             case 0xbe://CP (HL) (Z 1 H C)
-                CP(af.bytes.a, Bus->read(hl.hl));
+                CP(af.bytes.a, bus->read(hl.hl));
                                         break;
             case 0xbf://CP A (Z 1 H C)
                 CP(af.bytes.a, af.bytes.a);
@@ -1411,8 +1413,8 @@
                 {
                     pc.pc+=1;
                 } else {
-                    pc.bytes.c = Bus->read(sp.sp);
-                    pc.bytes.p = Bus->read(sp.sp+=1);
+                    pc.bytes.c = bus->read(sp.sp);
+                    pc.bytes.p = bus->read(sp.sp+=1);
                     sp.sp+=1;
                     cycles = CYCLE_TABLE_BRANCH[opcode] * 4;      
                 }
@@ -1426,8 +1428,8 @@
             case 0xc3://JP a16
             {
                 uint16_t temp = pc.pc;
-                pc.bytes.c = Bus->read(temp+1);
-                pc.bytes.p = Bus->read(temp+2);
+                pc.bytes.c = bus->read(temp+1);
+                pc.bytes.p = bus->read(temp+2);
                                         break;
             }
             case 0xc4://CALL NZ,a16
@@ -1437,7 +1439,7 @@
                 PUSH_16b(bc.bytes.b, bc.bytes.c);
                 break;
             case 0xc6://ADD A,d8
-                ADD(af.bytes.a, Bus->read(pc.pc+1));
+                ADD(af.bytes.a, bus->read(pc.pc+1));
                 pc.pc+=1;//Extra time and length for this one
                                         break;
             case 0xc7://RST 00H
@@ -1463,7 +1465,7 @@
                 CALL();
                 break;
             case 0xce://ADC A,d8
-                ADC(af.bytes.a, Bus->read(pc.pc+1));
+                ADC(af.bytes.a, bus->read(pc.pc+1));
                 
                 pc.pc+=1; //extra byte for this instruction
                 break;
@@ -1489,7 +1491,7 @@
                 PUSH_16b(de.bytes.d, de.bytes.e);
                 break;
             case 0xd6://SUB d8 (Z 1 H C)
-                SUB(af.bytes.a, Bus->read(pc.pc+1));
+                SUB(af.bytes.a, bus->read(pc.pc+1));
                                         pc.pc+=1;//extra byte for this instruction
                 break;
             case 0xd7://RST 10H
@@ -1515,14 +1517,14 @@
                     temp = pc.pc + 3;
                     
                     sp.sp--;
-                    Bus->write(sp.sp, (temp & 0xff00) >> 8);
+                    bus->write(sp.sp, (temp & 0xff00) >> 8);
                     sp.sp--;
-                    Bus->write(sp.sp, temp & 0x00ff);
+                    bus->write(sp.sp, temp & 0x00ff);
                     
                     temp = pc.pc;
 
-                    pc.bytes.c = Bus->read(temp+1);
-                    pc.bytes.p = Bus->read(temp+2);
+                    pc.bytes.c = bus->read(temp+1);
+                    pc.bytes.p = bus->read(temp+2);
                     cycles = 24;
                 } else {
                     pc.pc+=1;
@@ -1532,7 +1534,7 @@
             case 0xdd://NO OP
                 break;
             case 0xde://SBC A,d8 (Z 1 H C)
-                SBC(af.bytes.a, Bus->read(pc.pc+1));
+                SBC(af.bytes.a, bus->read(pc.pc+1));
                                         pc.pc+=1; //extra byte for this instruction
                 break;
             case 0xdf://RST 18H
@@ -1540,7 +1542,7 @@
                 break;
 
             case 0xe0://LD (a8), A
-                Bus->write((Bus->read(pc.pc+1))+0xff00, af.bytes.a);
+                bus->write((bus->read(pc.pc+1))+0xff00, af.bytes.a);
                 pc.pc+=2;
                 
                 break;
@@ -1548,7 +1550,7 @@
                 POP_16b(hl.bytes.h, hl.bytes.l);
                 break;
             case 0xe2://LD (C),A
-                Bus->write((0xff00+bc.bytes.c), af.bytes.a);
+                bus->write((0xff00+bc.bytes.c), af.bytes.a);
                 pc.pc+=1;
                                         break;
             case 0xe3://NO OP
@@ -1559,7 +1561,7 @@
                 PUSH_16b(hl.bytes.h, hl.bytes.l);
                 break;
             case 0xe6://AND d8
-                AND(af.bytes.a, Bus->read(pc.pc+1));
+                AND(af.bytes.a, bus->read(pc.pc+1));
                 pc.pc+=1;
                                         break;
             case 0xe7://RST 00h
@@ -1568,7 +1570,7 @@
             case 0xe8://ADD SP, r8
             {
                 int32_t r8;
-                r8 = (int8_t)(Bus->read(pc.pc+1));
+                r8 = (int8_t)(bus->read(pc.pc+1));
                 
                 if((sp.sp & 0xff) + (uint8_t)(r8 & 0xff) > 0xff)
                 {
@@ -1598,9 +1600,9 @@
             case 0xea://LD (a16),A
             {
                 uint16_t a16 = 0;
-                a16 |= Bus->read(pc.pc+1);//get low byte
-                a16 |= (Bus->read(pc.pc+2) << 8); // get high byte
-                Bus->write(a16, af.bytes.a);
+                a16 |= bus->read(pc.pc+1);//get low byte
+                a16 |= (bus->read(pc.pc+2) << 8); // get high byte
+                bus->write(a16, af.bytes.a);
                 pc.pc+=3;
                 
                 break;
@@ -1612,7 +1614,7 @@
             case 0xed://NO OP
                 break;
             case 0xee://XOR d8
-                XOR(af.bytes.a, Bus->read(pc.pc+1));
+                XOR(af.bytes.a, bus->read(pc.pc+1));
                 pc.pc+=1; //extra
                                         break;
             case 0xef://RST 28H
@@ -1620,7 +1622,7 @@
                 break;
             
             case 0xf0://LDH A,(a8)
-                af.bytes.a = (Bus->read( (Bus->read(pc.pc+1)) + 0xff00) );
+                af.bytes.a = (bus->read( (bus->read(pc.pc+1)) + 0xff00) );
                 pc.pc+=2;
                 
                 break;
@@ -1629,7 +1631,7 @@
                 af.bytes.f &= 0xf0;
                 break;
             case 0xf2://LD A,(C)
-                af.bytes.a = (Bus->read(0xff00 + bc.bytes.c));
+                af.bytes.a = (bus->read(0xff00 + bc.bytes.c));
                 pc.pc +=1;
                 
                 break;
@@ -1643,7 +1645,7 @@
                 PUSH_16b(af.bytes.a, af.bytes.f);
                 break;
             case 0xf6://OR d8
-                OR(af.bytes.a, Bus->read(pc.pc+1));
+                OR(af.bytes.a, bus->read(pc.pc+1));
                 
                 pc.pc+=1;
                 break;
@@ -1653,7 +1655,7 @@
             case 0xf8://LD HL,SP+r8
             {
                 int32_t r8;
-                r8 = (int8_t)(Bus->read(pc.pc+1));
+                r8 = (int8_t)(bus->read(pc.pc+1));
                 
                 if((sp.sp & 0xff) + (uint8_t)(r8 & 0xff) > 0xff)
                 {
@@ -1684,9 +1686,9 @@
             case 0xfa://LD A,(a16)
             {
                 uint16_t a16 = 0;
-                a16 |= Bus->read(pc.pc+1);//get low byte
-                a16 |= (Bus->read(pc.pc+2) << 8); // get high byte
-                af.bytes.a = Bus->read(a16);
+                a16 |= bus->read(pc.pc+1);//get low byte
+                a16 |= (bus->read(pc.pc+2) << 8); // get high byte
+                af.bytes.a = bus->read(a16);
                 pc.pc+=3;
                 
                 break;
@@ -1701,7 +1703,7 @@
             case 0xfd://NO OP
                 break;
             case 0xfe://CP d8
-                CP(af.bytes.a, Bus->read(pc.pc+1));
+                CP(af.bytes.a, bus->read(pc.pc+1));
                 pc.pc+=1;
                 // extra for this instruction
                 break;
@@ -1721,7 +1723,7 @@
         //////CB//////CB//////CB//////CB//////CB//////CB//////CB//////CB//////CB//////CB//////CB
 
         cb:
-        opcode = Bus->read(pc.pc);//gets new opcode
+        opcode = bus->read(pc.pc);//gets new opcode
         uint8_t opcodeH = (opcode & 0xF0) >> 4;
         uint8_t opcodeL = opcode & 0x0F;
 
@@ -1752,9 +1754,9 @@
                         break;
                     case 0x6://RLC (HL) (Z 0 0 REG7)
                     {
-                        uint8_t temp = Bus->read(hl.hl);
+                        uint8_t temp = bus->read(hl.hl);
                         RLC(temp);
-                        Bus->write(hl.hl, temp);
+                        bus->write(hl.hl, temp);
                         //extra time for hl
                         break;
                     }
@@ -1781,9 +1783,9 @@
                         break;
                     case 0xe://RRC (HL) (Z 0 0 0)
                     {
-                        uint8_t temp = Bus->read(hl.hl);
+                        uint8_t temp = bus->read(hl.hl);
                         RRC(temp);
-                        Bus->write(hl.hl, temp);
+                        bus->write(hl.hl, temp);
                         //extra time for hl
                         break;
                     }
@@ -1816,9 +1818,9 @@
                         break;
                     case 0x6://RL (HL) (Z 0 0 REG7)
                     {
-                        uint8_t temp = Bus->read(hl.hl);
+                        uint8_t temp = bus->read(hl.hl);
                         RL(temp);
-                        Bus->write(hl.hl, temp);
+                        bus->write(hl.hl, temp);
                         //extra time for hl
                         break;
                     }
@@ -1845,9 +1847,9 @@
                         break;
                     case 0xe://RR (HL) (Z 0 0 REG7)
                     {
-                        uint8_t temp = Bus->read(hl.hl);
+                        uint8_t temp = bus->read(hl.hl);
                         RR(temp);
-                        Bus->write(hl.hl, temp);
+                        bus->write(hl.hl, temp);
                         //extra time for hl
                         break;
                     }
@@ -1880,9 +1882,9 @@
                         break;
                     case 0x6://SLA (HL) (Z 0 0 REG7)
                     {
-                        uint8_t temp = Bus->read(hl.hl);
+                        uint8_t temp = bus->read(hl.hl);
                         SLA(temp);
-                        Bus->write(hl.hl, temp);
+                        bus->write(hl.hl, temp);
                         //extra time for hl
                         break;
                     }
@@ -1909,9 +1911,9 @@
                         break;
                     case 0xe://SRA (HL) (Z 0 0 0)
                     {
-                        uint8_t temp = Bus->read(hl.hl);
+                        uint8_t temp = bus->read(hl.hl);
                         SRA(temp);
-                        Bus->write(hl.hl, temp);
+                        bus->write(hl.hl, temp);
                         //extra time for hl
                         break;
                     }
@@ -1944,9 +1946,9 @@
                         break;
                     case 0x6://SWAP (HL) (Z 0 0 REG7)
                     {
-                        uint8_t temp = Bus->read(hl.hl);
+                        uint8_t temp = bus->read(hl.hl);
                         SWAP(temp);
-                        Bus->write(hl.hl, temp);
+                        bus->write(hl.hl, temp);
                         //extra time for hl
                         break;
                     }
@@ -1973,9 +1975,9 @@
                         break;
                     case 0xe://SRL (HL) (Z 0 0 0)
                     {
-                        uint8_t temp = Bus->read(hl.hl);
+                        uint8_t temp = bus->read(hl.hl);
                         SRL(temp);
-                        Bus->write(hl.hl, temp);
+                        bus->write(hl.hl, temp);
                         //extra time for hl
                         break;
                     }
@@ -2008,9 +2010,9 @@
                         break;
                     case 0x6://BIT 0,(HL) (Z 0 1 -)
                     {
-                        uint8_t temp = Bus->read(hl.hl);
+                        uint8_t temp = bus->read(hl.hl);
                         BIT(temp, 0b00000001);
-                        Bus->write(hl.hl, temp);
+                        bus->write(hl.hl, temp);
                         //extra time for hl
                         break;
                     }
@@ -2037,9 +2039,9 @@
                         break;
                     case 0xe://BIT 1,(HL) (Z 0 1 -)
                     {
-                        uint8_t temp = Bus->read(hl.hl);
+                        uint8_t temp = bus->read(hl.hl);
                         BIT(temp, 0b00000010);
-                        Bus->write(hl.hl, temp);
+                        bus->write(hl.hl, temp);
                         //extra time for hl
                         break;
                     }
@@ -2072,9 +2074,9 @@
                         break;
                     case 0x6://BIT 2,(HL) (Z 0 1 -)
                     {
-                        uint8_t temp = Bus->read(hl.hl);
+                        uint8_t temp = bus->read(hl.hl);
                         BIT(temp, 0b00000100);
-                        Bus->write(hl.hl, temp);
+                        bus->write(hl.hl, temp);
                         //extra time for hl
                         break;
                     }
@@ -2101,9 +2103,9 @@
                         break;
                     case 0xe://BIT 3,(HL) (Z 0 1 -)
                     {
-                        uint8_t temp = Bus->read(hl.hl);
+                        uint8_t temp = bus->read(hl.hl);
                         BIT(temp, 0b00001000);
-                        Bus->write(hl.hl, temp);
+                        bus->write(hl.hl, temp);
                         //extra time for hl
                         break;
                     }
@@ -2136,9 +2138,9 @@
                         break;
                     case 0x6://BIT 4,(HL) (Z 0 1 -)
                     {
-                        uint8_t temp = Bus->read(hl.hl);
+                        uint8_t temp = bus->read(hl.hl);
                         BIT(temp, 0b00010000);
-                        Bus->write(hl.hl, temp);
+                        bus->write(hl.hl, temp);
                         //extra time for hl
                         break;
                     }
@@ -2165,9 +2167,9 @@
                         break;
                     case 0xe://BIT 5,(HL) (Z 0 1 -)
                     {
-                        uint8_t temp = Bus->read(hl.hl);
+                        uint8_t temp = bus->read(hl.hl);
                         BIT(temp, 0b00100000);
-                        Bus->write(hl.hl, temp);
+                        bus->write(hl.hl, temp);
                         //extra time for hl
                         break;
                     }
@@ -2200,9 +2202,9 @@
                         break;
                     case 0x6://BIT 6,(HL) (Z 0 1 -)
                     {
-                        uint8_t temp = Bus->read(hl.hl);
+                        uint8_t temp = bus->read(hl.hl);
                         BIT(temp, 0b01000000);
-                        Bus->write(hl.hl, temp);
+                        bus->write(hl.hl, temp);
                         //extra time for hl
                         break;
                     }
@@ -2229,9 +2231,9 @@
                         break;
                     case 0xe://BIT 7,(HL) (Z 0 1 -)
                     {
-                        uint8_t temp = Bus->read(hl.hl);
+                        uint8_t temp = bus->read(hl.hl);
                         BIT(temp, 0b10000000);
-                        Bus->write(hl.hl, temp);
+                        bus->write(hl.hl, temp);
                         //extra time for hl
                         break;
                     }
@@ -2264,9 +2266,9 @@
                         break;
                     case 0x6://RES 0,(HL)
                     {
-                        uint8_t temp = Bus->read(hl.hl);
+                        uint8_t temp = bus->read(hl.hl);
                         RES(temp, 0b00000001);
-                        Bus->write(hl.hl, temp);
+                        bus->write(hl.hl, temp);
                         //extra time for hl
                         break;
                     }
@@ -2293,9 +2295,9 @@
                         break;
                     case 0xe://RES 1,(HL)
                     {
-                        uint8_t temp = Bus->read(hl.hl);
+                        uint8_t temp = bus->read(hl.hl);
                         RES(temp, 0b00000010);
-                        Bus->write(hl.hl, temp);
+                        bus->write(hl.hl, temp);
                         //extra time for hl
                         break;
                     }
@@ -2328,9 +2330,9 @@
                         break;
                     case 0x6://RES 2,(HL)
                     {
-                        uint8_t temp = Bus->read(hl.hl);
+                        uint8_t temp = bus->read(hl.hl);
                         RES(temp, 0b00000100);
-                        Bus->write(hl.hl, temp);
+                        bus->write(hl.hl, temp);
                         //extra time for hl
                         break;
                     }
@@ -2357,9 +2359,9 @@
                         break;
                     case 0xe://RES 3,(HL)
                     {
-                        uint8_t temp = Bus->read(hl.hl);
+                        uint8_t temp = bus->read(hl.hl);
                         RES(temp, 0b00001000);
-                        Bus->write(hl.hl, temp);
+                        bus->write(hl.hl, temp);
                         //extra time for hl
                         break;
                     }
@@ -2392,9 +2394,9 @@
                         break;
                     case 0x6://RES 4,(HL)
                     {
-                        uint8_t temp = Bus->read(hl.hl);
+                        uint8_t temp = bus->read(hl.hl);
                         RES(temp, 0b00010000);
-                        Bus->write(hl.hl, temp);
+                        bus->write(hl.hl, temp);
                         //extra time for hl
                         break;
                     }
@@ -2421,9 +2423,9 @@
                         break;
                     case 0xe://RES 5,(HL)
                     {
-                        uint8_t temp = Bus->read(hl.hl);
+                        uint8_t temp = bus->read(hl.hl);
                         RES(temp, 0b00100000);
-                        Bus->write(hl.hl, temp);
+                        bus->write(hl.hl, temp);
                         //extra time for hl
                         break;
                     }
@@ -2456,9 +2458,9 @@
                         break;
                     case 0x6://RES 6,(HL)
                     {
-                        uint8_t temp = Bus->read(hl.hl);
+                        uint8_t temp = bus->read(hl.hl);
                         RES(temp, 0b01000000);
-                        Bus->write(hl.hl, temp);
+                        bus->write(hl.hl, temp);
                         //extra time for hl
                         break;
                     }
@@ -2485,9 +2487,9 @@
                         break;
                     case 0xe://RES 7,(HL)
                     {
-                        uint8_t temp = Bus->read(hl.hl);
+                        uint8_t temp = bus->read(hl.hl);
                         RES(temp, 0b10000000);
-                        Bus->write(hl.hl, temp);
+                        bus->write(hl.hl, temp);
                         //extra time for hl
                         break;
                     }
@@ -2520,9 +2522,9 @@
                         break;
                     case 0x6://SET 0,(HL)
                     {
-                        uint8_t temp = Bus->read(hl.hl);
+                        uint8_t temp = bus->read(hl.hl);
                         SET(temp, 0b00000001);
-                        Bus->write(hl.hl, temp);
+                        bus->write(hl.hl, temp);
                         //extra time for hl
                         break;
                     }
@@ -2549,9 +2551,9 @@
                         break;
                     case 0xe://SET 1,(HL)
                     {
-                        uint8_t temp = Bus->read(hl.hl);
+                        uint8_t temp = bus->read(hl.hl);
                         SET(temp, 0b00000010);
-                        Bus->write(hl.hl, temp);
+                        bus->write(hl.hl, temp);
                         //extra time for hl
                         break;
                     }
@@ -2584,9 +2586,9 @@
                         break;
                     case 0x6://SET 2,(HL)
                     {
-                        uint8_t temp = Bus->read(hl.hl);
+                        uint8_t temp = bus->read(hl.hl);
                         SET(temp, 0b00000100);
-                        Bus->write(hl.hl, temp);
+                        bus->write(hl.hl, temp);
                         //extra time for hl
                         break;
                     }
@@ -2613,9 +2615,9 @@
                         break;
                     case 0xe://SET 3,(HL)
                     {
-                        uint8_t temp = Bus->read(hl.hl);
+                        uint8_t temp = bus->read(hl.hl);
                         SET(temp, 0b00001000);
-                        Bus->write(hl.hl, temp);
+                        bus->write(hl.hl, temp);
                         //extra time for hl
                         break;
                     }
@@ -2648,9 +2650,9 @@
                         break;
                     case 0x6://SET 4,(HL)
                     {
-                        uint8_t temp = Bus->read(hl.hl);
+                        uint8_t temp = bus->read(hl.hl);
                         SET(temp, 0b00010000);
-                        Bus->write(hl.hl, temp);
+                        bus->write(hl.hl, temp);
                         //extra time for hl
                         break;
                     }
@@ -2677,9 +2679,9 @@
                         break;
                     case 0xe://SET 5,(HL)
                     {
-                        uint8_t temp = Bus->read(hl.hl);
+                        uint8_t temp = bus->read(hl.hl);
                         SET(temp, 0b00100000);
-                        Bus->write(hl.hl, temp);
+                        bus->write(hl.hl, temp);
                         //extra time for hl
                         break;
                     }
@@ -2712,9 +2714,9 @@
                         break;
                     case 0x6://SET 6,(HL)
                     {
-                        uint8_t temp = Bus->read(hl.hl);
+                        uint8_t temp = bus->read(hl.hl);
                         SET(temp, 0b01000000);
-                        Bus->write(hl.hl, temp);
+                        bus->write(hl.hl, temp);
                         //extra time for hl
                         break;
                     }
@@ -2741,9 +2743,9 @@
                         break;
                     case 0xe://SET 7,(HL)
                     {
-                        uint8_t temp = Bus->read(hl.hl);
+                        uint8_t temp = bus->read(hl.hl);
                         SET(temp, 0b10000000);
-                        Bus->write(hl.hl, temp);
+                        bus->write(hl.hl, temp);
                         //extra time for hl
                         break;
                     }

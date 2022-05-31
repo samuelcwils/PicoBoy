@@ -1,34 +1,30 @@
-#include "bus.h"
+#include "Bus.h"
+extern Cart* cart;
+extern PPU* ppu;
+extern CPU* cpu;
 
-bus::bus(cart* Cart, ppu* PPU)
+Bus::Bus()
 {
-    memoryMap.Cart = Cart;
-    memoryMap.PPU = PPU;
     joypad = 0xcf;
     joypad_state = 0xff;
 }
 
-void bus::connectCPU(cpu* CPU)
-{
-    this->memoryMap.CPU = CPU;
-}
-
-void bus::write(uint16_t address, uint8_t byte)
+void Bus::write(uint16_t address, uint8_t byte)
 {
     if(address <= 0x7fff)
     {
-        memoryMap.Cart->writeRom(address, byte);
+        cart->writeRom(address, byte);
         
     } else if(address <= 0x9fff){
 
-        if(memoryMap.PPU->VRAM_access)
+        if(ppu->VRAM_access)
         {
-            memoryMap.PPU->vRam.vRam[address - 0x8000] = byte;
+            ppu->vRam[address - 0x8000] = byte;
         }
 
     } else if(address <= 0xbfff){
 
-        memoryMap.Cart->ramBank[address - 0xa000] = byte;
+        cart->ramBank[address - 0xa000] = byte;
 
     } else if(address <= 0xdfff){
 
@@ -40,9 +36,9 @@ void bus::write(uint16_t address, uint8_t byte)
 
     } else if(address <= 0xfe9f){
 
-        if(memoryMap.PPU->OAM_access)
+        if(ppu->OAM_access)
         {
-            memoryMap.PPU->oam[address - 0xee00] = byte;
+            ppu->oam[address - 0xee00] = byte;
         }
 
     } else if(address == 0xff00){
@@ -67,38 +63,38 @@ void bus::write(uint16_t address, uint8_t byte)
 
     } else if(address == 0xff04){
 
-        memoryMap.CPU->DIV = 0;
-        memoryMap.CPU->totalTicks_DIV = 0;
-        memoryMap.CPU->totalTicks_TIMA = 0;
-        memoryMap.CPU->TIMA = 0;
+        cpu->DIV = 0;
+        cpu->totalTicks_DIV = 0;
+        cpu->totalTicks_TIMA = 0;
+        cpu->TIMA = 0;
     
     } else if(address == 0xff05){
 
-        memoryMap.CPU->TIMA = byte;
+        cpu->TIMA = byte;
 
     } else if(address == 0xff06){
 
-        memoryMap.CPU->TMA = byte;
+        cpu->TMA = byte;
 
     } else if(address == 0xff07){
 
-        memoryMap.CPU->TAC = byte;
+        cpu->TAC = byte;
         int lookup[] = {1024,16, 64, 256};
-        memoryMap.CPU->TIMA_speed = lookup[(memoryMap.CPU->TAC & 0b00000011)];
+        cpu->TIMA_speed = lookup[(cpu->TAC & 0b00000011)];
 
     } else if(address == 0xff0f){
 
-        memoryMap.CPU->IF = byte;
+        cpu->IF = byte;
 
     
     } else if(address >= 0xff40 && address <= 0xff4b){
 
         if(address == 0xff46)
         {
-            memoryMap.PPU->DMA(((uint16_t)byte) << 8);
+            ppu->DMA(((uint16_t)byte) << 8);
         }
 
-        memoryMap.PPU->regs.regs[(address - 0xff40)] = byte;
+        ppu->regs.regs[(address - 0xff40)] = byte;
 
     } else if(address <= 0xfffe){
 
@@ -106,36 +102,36 @@ void bus::write(uint16_t address, uint8_t byte)
 
     } else if(address == 0xffff){
         
-        memoryMap.CPU->IE = byte;
+        cpu->IE = byte;
     
     }
 
 }
 
-uint8_t bus::read(uint16_t address)
+uint8_t Bus::read(uint16_t address)
 {   
 
     if(address <= 0x3fff)
     {
 
-        return memoryMap.Cart->rom[address];
+        return cart->rom[address];
 
     } else if(address <= 0x7fff)
     {
-        return memoryMap.Cart->rom[address + ((memoryMap.Cart->romBankNum - 1) * 0x4000)];
+        return cart->rom[address + ((cart->romBankNum - 1) * 0x4000)];
 
     } else if(address <= 0x9fff){
 
-        if(memoryMap.PPU->VRAM_access || (PPU_read))
+        if(ppu->VRAM_access || (PPU_read))
         {
-            return memoryMap.PPU->vRam.vRam[address - 0x8000];
+            return ppu->vRam[address - 0x8000];
         } else {
             return 0xff;
         }
 
     } else if(address <= 0xbfff){
 
-        return memoryMap.Cart->cartRam[address - 0xa000];
+        return cart->cartRam[address - 0xa000];
 
     } else if(address <= 0xdfff){
 
@@ -147,9 +143,9 @@ uint8_t bus::read(uint16_t address)
 
     } else if(address <= 0xfe9f){
 
-        if(memoryMap.PPU->OAM_access || (PPU_read))
+        if(ppu->OAM_access || (PPU_read))
         {
-            return memoryMap.PPU->oam[address - 0xee00];
+            return ppu->oam[address - 0xee00];
         } else {
             return 0xff;
         }
@@ -178,39 +174,39 @@ uint8_t bus::read(uint16_t address)
 
     } else if(address == 0xff04){
 
-        return memoryMap.CPU->DIV;
+        return cpu->DIV;
     
     } else if(address == 0xff05){
 
-        return memoryMap.CPU->TIMA;
+        return cpu->TIMA;
 
     } else if(address == 0xff06){
 
-        return memoryMap.CPU->TMA;
+        return cpu->TMA;
 
     } else if(address == 0xff07){
 
-        return memoryMap.CPU->TAC;
+        return cpu->TAC;
 
     } else if(address == 0xff0f){
 
-        return memoryMap.CPU->IF;
+        return cpu->IF;
       
     } else if(address >= 0xff40 && address <= 0xff4b){
 
         if(address == 0xff41)
         {
-            if(!(memoryMap.PPU->regs.bytes.LCDC & 0b10000000))
+            if(!(ppu->regs.bytes.LCDC & 0b10000000))
             {
-                return (memoryMap.PPU->regs.regs[(address - 0xff41)]) & 0b11111100;
+                return (ppu->regs.regs[(address - 0xff41)]) & 0b11111100;
             } else {
-                return memoryMap.PPU->regs.bytes.STAT;
+                return ppu->regs.bytes.STAT;
             }
 
            int x = 5 + 5;
         }
 
-        return memoryMap.PPU->regs.regs[(address - 0xff40)];
+        return ppu->regs.regs[(address - 0xff40)];
 
     } else if(address <= 0xfffe){
 
@@ -218,18 +214,18 @@ uint8_t bus::read(uint16_t address)
 
     } else if(address == 0xffff){
         
-        return memoryMap.CPU->IE;
+        return cpu->IE;
 
     }
 
     return 0xff;
 }
 
-void bus::interruptFlags(uint8_t flag)
+void Bus::interruptFlags(uint8_t flag)
 {
-    if(!(memoryMap.CPU->servicingInterrupt) && flag != 2)
+    if(!(cpu->servicingInterrupt) && flag != 2)
     {
-        memoryMap.CPU->IF |= flag;
+        cpu->IF |= flag;
     }
     
 }

@@ -2,11 +2,9 @@
 #include "stdint.h"
 #include "stdio.h"
 
-class cart{
-
-
+class Cart{
 public:
-    cart(uint8_t* rom, uint32_t romSize);
+    Cart(uint8_t* rom, uint32_t romSize);
 
     uint32_t romSize;
     char title[16];
