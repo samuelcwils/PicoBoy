@@ -1,8 +1,0 @@
-class apu {
-
-    struct
-    {
-
-    } soundChannels;
-
-};
