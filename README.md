@@ -1,4 +1,4 @@
-This is a gameboy emulator for the Raspberry Pi Pico and ESP32. Games with LCD STAT interrupts have issues. Feel free to contribute.
+This is a gameboy emulator for the Raspberry Pi Pico. Games with LCD STAT interrupts have issues. Feel free to contribute.
 
 It is designed around the Pimoroni Pico Explorer Base (although it should work on any st7789 lcd).
 Runs at full speed with all inputs setup.
