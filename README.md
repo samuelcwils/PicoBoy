@@ -7,7 +7,7 @@ This does overclock your device!
 # How to add games
 Put a .gb rom file into the include folder and rename it "gameboy.gb". It will be included into the binary.
 
-#Note
+# Note
 Requires git submodule init and git submodule update to get dependancies]
 
 There are definitely some things I would have done differently if I made this project now. Not having a function to pass in pointers of the components (eg. connectCPU) is one example.
